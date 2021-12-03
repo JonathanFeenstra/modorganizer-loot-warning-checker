@@ -191,10 +191,11 @@ class DirtyPluginWarning(LOOTWarning):
         else:
             self.fullDescription = f"{self.shortDescription}<br/><br/>{content}"
         if any((self.itm, self.udr, self.nav)):
-            self.fullDescription += "<br/><br/>Details:<br/><br/>"
+            self.fullDescription += "<br/><br/>Details:<ul>"
             if self.itm is not None:
-                self.fullDescription += f"- {self.itm} Identical To Master records (ITMs)"
+                self.fullDescription += f"<li>{self.itm} Identical To Master records (ITMs)</li>"
             if self.udr is not None:
-                self.fullDescription += f"- {self.udr} Undeleted and Disabled References (UDRs)"
+                self.fullDescription += f"<li>{self.udr} Undeleted and Disabled References (UDRs)</li>"
             if self.nav is not None:
-                self.fullDescription += f"- {self.nav} Deleted Navmeshes (NAVs)"
+                self.fullDescription += f"<li>{self.nav} Deleted Navmeshes (NAVs)</li>"
+            self.fullDescription += "</ul>"
