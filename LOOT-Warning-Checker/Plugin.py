@@ -120,13 +120,13 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         if game is not None:
             if self.__organizer.pluginSetting(self.name(), "auto-update-masterlist"):
                 repoName, gameFolder = game.lootGame
-                qInfo("Updating LOOT masterlist...")
+                qInfo(self.__tr("Updating LOOT masterlist..."))
                 try:
                     downloadMasterlist(repoName, findMasterlistDir(gameFolder))
                 except OSError as exc:
                     qCritical(str(exc))
                 else:
-                    qInfo("Successfully updated LOOT masterlist.")
+                    qInfo(self.__tr("Successfully updated LOOT masterlist."))
             try:
                 self.__lootLoader = LOOTMasterlistLoader(self.__organizer, game.lootGame)
             except OSError as exc:
@@ -216,7 +216,6 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 "<br/>If xEdit is not installed, you can download it from "
                 '<a href="https://github.com/TES5Edit/TES5Edit/releases/latest">here</a>.'
             ),
-            QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
         )
         if result != QMessageBox.Yes:
             return None

@@ -8,4 +8,4 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
-        args: ["--profile", "black", "--line-length", "125", "--skip-glob", "tools/LOOT/yaml/*"]
+        args: ["--profile", "black", "--line-length", "125", "--skip-glob", "LOOT-Warning-Checker/tools/LOOT/yaml/*"]
