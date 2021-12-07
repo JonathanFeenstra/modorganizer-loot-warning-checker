@@ -25,10 +25,10 @@ from typing import Any, Dict, Generator, List, NamedTuple, Union
 
 from mobase import IOrganizer
 from PyQt5.QtCore import qCritical, qDebug, qWarning
+from yaml import CSafeLoader, YAMLError, load
 
 from .Conditions import InvalidConditionError, LOOTConditionEvaluator, computeCRC32
 from .Warnings import DirtyPluginWarning, IncompatibilityWarning, LOOTWarning, MessageWarning, MissingRequirementWarning
-from .yaml import YAMLError, safe_load
 
 
 class LOOTGame(NamedTuple):
@@ -105,8 +105,7 @@ def _parseMasterlist(masterlistPath: Union[str, bytes, os.PathLike]) -> Dict[str
         ValueError: If the masterlist file contains invalid data
     """
     with open(masterlistPath, "r", encoding="utf-8") as file:
-        # CSafeLoader requires https://github.com/yaml/libyaml
-        masterlist = safe_load(file)
+        masterlist = load(file, CSafeLoader)
     if not isinstance(masterlist, dict) or masterlist.get("plugins") is None:
         raise ValueError("Invalid masterlist file.")
     return {plugin.pop("name"): plugin for plugin in masterlist["plugins"]}

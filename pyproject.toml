@@ -1,12 +1,12 @@
 [tool.black]
 line-length = 125
 target-version = ["py38"]
-exclude = "/LOOT-Warning-Checker/tools/LOOT/yaml/"
+exclude = "/LOOT-Warning-Checker/lib/"
 
 [tool.isort]
 profile = "black"
 line_length = 125
-skip_glob = ["LOOT-Warning-Checker/tools/LOOT/yaml/*"]
+skip_glob = ["LOOT-Warning-Checker/lib/*"]
 
 [tool.pylint.messages_control]
 disable = "C0330, C0326, C0111, W0212"
