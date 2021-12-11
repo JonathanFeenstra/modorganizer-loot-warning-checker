@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 
 from .Games import SUPPORTED_GAMES
 from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, findMasterlistDir
-from .tools.xEdit import compile_xEditFileNameRegex, get_xEditPathFromRegistry, scan_xEditDirectoryForExecutable, xEditGame
+from .tools.xEdit import get_xEditPathFromRegistry, scan_xEditDirectoryForExecutable, xEditGame
 
 
 class LOOTWarningChecker(mobase.IPluginDiagnose):
@@ -227,7 +227,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         Prompt the user to select the xEdit directory and return the file path.
 
         Args:
-            generalPrefix (str): The generakl prefix of the xEdit executable.
+            generalPrefix (str): The general prefix of the xEdit executable.
             specificPrefix (str): The specific prefix of the xEdit executable.
 
         Returns:
