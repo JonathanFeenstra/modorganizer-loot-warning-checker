@@ -20,8 +20,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import os
-import urllib
 from typing import Any, Dict, Generator, List, NamedTuple, Union
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from mobase import IOrganizer
 from PyQt5.QtCore import qCritical, qDebug, qWarning
@@ -85,7 +86,7 @@ def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -
     """
     # Version branch may change if the masterlist syntax changes
     masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.15/masterlist.yaml"
-    with urllib.request.urlopen(masterlistURL) as response:
+    with urlopen(masterlistURL) as response:
         with open(filePath, "wb") as file:
             file.write(response.read())
 
@@ -266,7 +267,7 @@ class LOOTMasterlistLoader:
             qDebug(f"Masterlist not found at {masterlistPath}, downloading...")
             try:
                 downloadMasterlist(self._game.masterlistRepo, masterlistPath)
-            except urllib.error.URLError:
+            except URLError:
                 qCritical(f"Failed to download masterlist for {self._game.folder}.")
                 raise
             except OSError:

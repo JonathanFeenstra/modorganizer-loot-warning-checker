@@ -57,7 +57,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 0, 1, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [
@@ -172,8 +172,8 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             path = get_xEditPathFromRegistry(game.specificPrefix)
             qDebug(f"Found xEdit path in registry: {path}")
         except OSError:
+            path = None
             qDebug("Could not find xEdit executable in registry.")
-            path = self.__get_xEditPathFromGameExecutables(game)
 
         if path is None or not os.path.isfile(path):
             path = self.__start_xEditDirectorySelectionDialog(game)
@@ -181,23 +181,6 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         if path is not None and os.path.isfile(path):
             self.__organizer.setPluginSetting(self.name(), "xedit-directory", os.path.dirname(path))
         return path
-
-    def __get_xEditPathFromGameExecutables(self, game: xEditGame) -> Optional[str]:
-        """Get the xEdit executable path from the game executables.
-
-        Args:
-            game (xEditGame): The game to get the path for.
-
-        Returns:
-            Optional[str]: The path to the xEdit executable, or None if not found.
-        """
-        qDebug("Looking for xEdit in game executables...")
-        for appInfo in self.__organizer.managedGame().executables():
-            if compile_xEditFileNameRegex(game).match(appInfo.binary.filename()):
-                path = appInfo.binary.path()
-                qDebug(f"Found xEdit in game executable: {path}")
-                return path
-        qDebug("Could not find xEdit in game executables.")
 
     def __start_xEditDirectorySelectionDialog(self, game: xEditGame) -> Optional[str]:
         """Start the xEdit directory selection dialog.
