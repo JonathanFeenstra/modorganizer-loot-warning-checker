@@ -24,4 +24,4 @@
     - Fallout 4 VR
 
 ## Installation
-Add the [LOOT-Warning-Checker folder](/LOOT-Warning-Checker) to your Mod Organizer 2 plugins folder.
+Add the [LOOT-Warning-Checker folder](/LOOT-Warning-Checker) to your Mod Organizer 2 plugins folder or install it using [Kezyma's Plugin Finder](https://www.nexusmods.com/skyrimspecialedition/mods/59869).
