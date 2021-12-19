@@ -85,7 +85,7 @@ def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -
         OSError: If the file cannot be written to
     """
     # Version branch may change if the masterlist syntax changes
-    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.15/masterlist.yaml"
+    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.17/masterlist.yaml"
     with urlopen(masterlistURL) as response:
         with open(filePath, "wb") as file:
             file.write(response.read())
@@ -360,15 +360,11 @@ class LOOTMasterlistLoader:
                 if (condition := file.get("condition")) is not None:
                     try:
                         if self._conditionEvaluator.evalCondition(condition):
-                            yield MissingRequirementWarning(
-                                pluginName,
-                                fileName,
-                                file.get("display"),
-                            )
+                            yield MissingRequirementWarning(pluginName, file)
                     except InvalidConditionError as exc:
                         qCritical(f"Invalid condition in {pluginName}'s masterlist entry: {condition}\n{exc}")
                 else:
-                    yield MissingRequirementWarning(pluginName, fileName, file.get("display"))
+                    yield MissingRequirementWarning(pluginName, file)
 
     def _getIncompatibilityWarnings(
         self, pluginName: str, incompatibleFiles: List[Union[str, Dict]]
@@ -393,19 +389,11 @@ class LOOTMasterlistLoader:
                     if (condition := file.get("condition")) is not None:
                         try:
                             if self._conditionEvaluator.evalCondition(condition):
-                                yield IncompatibilityWarning(
-                                    pluginName,
-                                    fileName,
-                                    file.get("display"),
-                                )
+                                yield IncompatibilityWarning(pluginName, file)
                         except InvalidConditionError:
                             qCritical(f"Invalid condition in {pluginName}'s masterlist entry: {condition}")
                     else:
-                        yield IncompatibilityWarning(
-                            pluginName,
-                            fileName,
-                            file.get("display"),
-                        )
+                        yield IncompatibilityWarning(pluginName, file)
 
     def _getMessageWarnings(
         self, pluginName: str, messages: List[Dict[str, Any]], includeInfo: bool = False

@@ -31,6 +31,19 @@
         "Fixed incorrect <code>urllib</code> imports breaking the masterlist download",
         "Removed searching for xEdit in MO2 executables (which only works for the game's default executables)"
       ]
+    },
+    {
+      "Version": "1.1.0-beta",
+      "Released": "2021-12-19",
+      "MinSupport": "2.4.2",
+      "MaxSupport": "2.4.3",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.1.0-beta/LOOT-Warning-Checker-v1.1.0-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Update LOOT masterlist version to v0.17"
+      ]
     }
   ]
 }

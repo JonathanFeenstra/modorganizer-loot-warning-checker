@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import re
 from abc import ABC
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 _MARKDOWN_BOLD_RE = re.compile(r"\*\*(?P<content>.*?)\*\*")
 _MARKDOWN_HYPERLINK_RE = re.compile(r"\[(?P<content>.*?)\]\((?P<url>.*?)\)")
@@ -113,16 +113,23 @@ class MissingRequirementWarning(LOOTWarning):
         filePath (str): Path of the missing file
     """
 
-    def __init__(self, pluginName: str, filePath: str, displayName: Optional[str] = None) -> None:
+    def __init__(self, pluginName: str, fileData: Union[str, Dict[str, str]]) -> None:
         """
         Args:
             pluginName (str): Name of the plugin that caused the warning
-            filePath (str): Path of the missing file
-            displayName (Optional[str]): Optional substitute string to be displayed instead of the file path
+            fileData (Union[str, Dict[str, str]]): Path (str) or file datastructure (dict) of the missing file
         """
         self.pluginName = pluginName
-        self.filePath = filePath
-        content = f"{self.pluginName} requires '{displayName or self.filePath}', but it is missing."
+        if isinstance(fileData, str):
+            self.filePath = fileData
+            content = f"{self.pluginName} requires '{self.filePath}' to be installed, but it is missing."
+        else:
+            self.filePath = fileData["name"]
+            fileData.get("detail", "")
+            content = (
+                f"{self.pluginName} requires '{fileData.get('display', self.filePath)}' to be "
+                f"installed, but it is missing. {fileData.get('detail', '')}"
+            )
         self.shortDescription = _stripMarkdown(content)
         self.fullDescription = _convertMarkdownToHTML(content)
 
@@ -137,21 +144,23 @@ class IncompatibilityWarning(LOOTWarning):
         filePath (str): Path of the incompatible file
     """
 
-    def __init__(
-        self,
-        pluginName: str,
-        filePath: str,
-        displayName: Optional[str] = None,
-    ) -> None:
+    def __init__(self, pluginName: str, fileData: Union[str, Dict[str, str]]) -> None:
         """
         Args:
             pluginName (str): Name of the plugin that caused the warning
-            filePath (str): Path of the incompatible file
-            displayName (Optional[str]): Optional substitute string to be displayed instead of the file path
+            fileData (Union[str, Dict[str, str]]): Path (str) or file datastructure (dict) of the incompatible file
         """
         self.pluginName = pluginName
-        self.filePath = filePath
-        content = f"{self.pluginName} is incompatible with '{displayName or self.filePath}'."
+        if isinstance(fileData, str):
+            self.filePath = fileData
+            content = f"{self.pluginName} is incompatible with '{self.filePath}', but both are present."
+        else:
+            self.filePath = fileData["name"]
+            fileData.get("detail", "")
+            content = (
+                f"{self.pluginName} is incompatible with '{fileData.get('display', self.filePath)}', but both "
+                f"are present. {fileData.get('detail', '')}"
+            )
         self.shortDescription = _stripMarkdown(content)
         self.fullDescription = _convertMarkdownToHTML(content)
 
@@ -177,8 +186,7 @@ class DirtyPluginWarning(LOOTWarning):
         self.itm = dirtyInfo.get("itm")
         self.udr = dirtyInfo.get("udr")
         self.nav = dirtyInfo.get("nav")
-        # ["info"][0] = English localization
-        content = _convertMarkdownToHTML(dirtyInfo["info"][0]["text"])
+        content = _convertMarkdownToHTML(dirtyInfo["detail"])
         # If the plugin requires a manual fix, description will be:
         # "It is strongly recommended not to use mods that contain..."
         # Presence of NAV does not directly imply manual fix: quick clean can still be used on masters
