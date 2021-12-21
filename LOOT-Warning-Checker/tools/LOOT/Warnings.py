@@ -165,6 +165,26 @@ class IncompatibilityWarning(LOOTWarning):
         self.fullDescription = _convertMarkdownToHTML(content)
 
 
+class FormID_OutOfRangeWarning(LOOTWarning):
+    """LOOT warning for light plugins with FormIDs that are out of range."""
+
+    def __init__(self, pluginName: str) -> None:
+        """
+        Args:
+            pluginName (str): Name of the plugin that caused the warning
+        """
+        self.pluginName = pluginName
+        self.shortDescription = (
+            f"{pluginName} contains records that have FormIDs outside the valid range for an ESL plugin. "
+            "Using this plugin will cause irreversible damage to your game saves."
+        )
+        self.fullDescription = (
+            f"{self.shortDescription}<br><br>The valid FormID range for ESL plugins is <b>FExxx800-FExxxFFF</b> "
+            "in Skyrim Special Edition and <b>FExxx001-FExxxFFF</b> in Fallout 4. If this plugin was uploaded in this "
+            "state, the error should be reported to the author."
+        )
+
+
 class DirtyPluginWarning(LOOTWarning):
     """LOOT warning for a dirty plugin.
 

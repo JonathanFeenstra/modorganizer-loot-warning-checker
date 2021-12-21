@@ -49,11 +49,13 @@ import operator
 import os
 import re
 from ast import literal_eval
-from typing import Any, Callable, Generator, List, Tuple, Union
-from zlib import crc32  # Faster than binascii.crc32
+from typing import Any, Callable, Generator, List, Optional, Tuple, Union
+from zlib import crc32
 
 import mobase
 from PyQt5.QtCore import qCritical, qDebug
+
+from .Plugins import GamebryoPlugin
 
 
 class InvalidConditionError(ValueError):
@@ -182,7 +184,7 @@ class LOOTConditionEvaluator:
             ),
         )
 
-    def evalCondition(self, condition: str) -> bool:
+    def evalCondition(self, condition: str, plugin: Optional[GamebryoPlugin] = None) -> bool:
         """Evaluate a LOOT masterlist condition.
 
         Strategy:
@@ -192,6 +194,7 @@ class LOOTConditionEvaluator:
 
         Args:
             condition (str): A condition to evaluate, as specified in the masterlist
+            plugin (Optional[GamebryoPlugin]): The plugin to evaluate the condition for
 
         Returns:
             bool: True if the condition is met
@@ -209,12 +212,31 @@ class LOOTConditionEvaluator:
                 rawArgs = match.group("args").format(*strings)
                 parsedArgs = self._parseArgs(mo2Function, rawArgs)
                 # Evaluate and replace the function with its result
-                result = mo2Function(*parsedArgs)
+                result = self._evalFunction(mo2Function, parsedArgs, plugin)
                 qDebug(f"{match.group('func').rsplit('(', 1)[0]}({rawArgs}) = {result}")
                 condition = condition.replace(match.group("func"), str(result))
         result = _evalBooleanExpression(condition)
-        qDebug(f"{condition} = {result}")
+        qDebug(f"Final evaluation: {condition} = {result}")
         return result
+
+    def _evalFunction(
+        self, mo2Function: Callable, parsedArgs: Generator[Any, None, None], plugin: Optional[GamebryoPlugin] = None
+    ) -> bool:
+        """Evaluate a function.
+
+        Args:
+            mo2Function (Callable): The function to evaluate
+            parsedArgs (Generator[Any, None, None]): The arguments to pass to the function
+            plugin (Optional[GamebryoPlugin]): The plugin to evaluate the function for
+
+        Returns:
+            bool: The result of the function
+        """
+        if plugin is None or mo2Function != self._checksum:
+            return mo2Function(*parsedArgs)
+        # Special case: if filePath matches plugin path, use the CRC32 of the plugin in case it's already loaded
+        filePath, expectedCRC = parsedArgs
+        return plugin.crc == expectedCRC if filePath == plugin.path else self._checksum(filePath, expectedCRC)
 
     def _replaceStringsWithPlaceholders(self, condition: str) -> Tuple[str, List[str]]:
         """Replace strings in a condition with placeholders.
@@ -435,7 +457,7 @@ class LOOTConditionEvaluator:
             expectedChecksum (int): The expected checksum
 
         Returns:
-            bool: True if the checksum matches
+            bool: True if the file was found and the checksum matches
 
         Raises:
             InvalidConditionError: If the file is not in the game directory

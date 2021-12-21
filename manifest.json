@@ -44,6 +44,19 @@
       "ReleaseNotes": [
         "Update LOOT masterlist version to v0.17"
       ]
+    },
+    {
+      "Version": "1.1.1-beta",
+      "Released": "2021-12-21",
+      "MinSupport": "2.4.2",
+      "MaxSupport": "2.4.3",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.1.1-beta/LOOT-Warning-Checker-v1.1.1-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Check for FormID out of range errors in light plugins"
+      ]
     }
   ]
 }

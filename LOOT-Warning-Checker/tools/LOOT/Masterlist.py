@@ -28,8 +28,16 @@ from mobase import IOrganizer
 from PyQt5.QtCore import qCritical, qDebug, qWarning
 from yaml import CSafeLoader, YAMLError, load
 
-from .Conditions import InvalidConditionError, LOOTConditionEvaluator, computeCRC32
-from .Warnings import DirtyPluginWarning, IncompatibilityWarning, LOOTWarning, MessageWarning, MissingRequirementWarning
+from .Conditions import InvalidConditionError, LOOTConditionEvaluator
+from .Plugins import GamebryoPlugin
+from .Warnings import (
+    DirtyPluginWarning,
+    FormID_OutOfRangeWarning,
+    IncompatibilityWarning,
+    LOOTWarning,
+    MessageWarning,
+    MissingRequirementWarning,
+)
 
 
 class LOOTGame(NamedTuple):
@@ -300,48 +308,50 @@ class LOOTMasterlistLoader:
             LOOTWarning: LOOT's warnings
         """
         for pluginPath in self._organizer.findFiles("", "*.es[lmp]"):
-            pluginName = os.path.basename(pluginPath)
-            if (pluginData := self._masterlist.get(pluginName, None)) is not None:
+            plugin = GamebryoPlugin(self._game.masterlistRepo, pluginPath)
+            if plugin.isLightPlugin() and not plugin.isValidAsLightPlugin():
+                qDebug(f"Checking if {plugin.name} is an invalid light plugin...")
+                yield FormID_OutOfRangeWarning(plugin.name)
+            if (pluginData := self._masterlist.get(plugin.name, None)) is not None:
                 try:
-                    yield from self._getPluginWarnings(pluginPath, pluginData, includeInfo)
+                    yield from self._getPluginWarnings(plugin, pluginData, includeInfo)
                 except Exception as exc:
                     # Prevent unexpected errors from checking the rest of the plugins
-                    qCritical(f"Error while processing {pluginName}: {exc}")
+                    qCritical(f"Error while processing {plugin.name}: {exc}")
 
     def _getPluginWarnings(
-        self, pluginPath: str, pluginData: Dict[str, Any], includeInfo: bool = False
+        self, plugin: GamebryoPlugin, pluginData: Dict[str, Any], includeInfo: bool = False
     ) -> Generator[LOOTWarning, None, None]:
         """Get LOOT's warnings for the given plugin.
 
         Args:
-            pluginPath (str): Path to the plugin's file
+            plugin (GamebryoPlugin): Plugin to check
             pluginData (dict): Plugin's metadata
             includeInfo (bool): Whether to include info messages in the warnings
 
         Yields:
             LOOTWarning: LOOT's warnings for the given plugin
         """
-        pluginName = os.path.basename(pluginPath)
         if isinstance(requiredFiles := pluginData.get("req"), list):
-            qDebug(f"Checking {pluginName} for missing requirements")
-            yield from self._getMissingRequirementWarnings(pluginName, requiredFiles)
+            qDebug(f"Checking {plugin.name} for missing requirements...")
+            yield from self._getMissingRequirementWarnings(plugin, requiredFiles)
         if isinstance(incompatibleFiles := pluginData.get("inc"), list):
-            qDebug(f"Checking {pluginName} for incompatible files")
-            yield from self._getIncompatibilityWarnings(pluginName, incompatibleFiles)
+            qDebug(f"Checking {plugin.name} for incompatible files...")
+            yield from self._getIncompatibilityWarnings(plugin, incompatibleFiles)
         if isinstance(messages := pluginData.get("msg"), list):
-            qDebug(f"Checking {pluginName} for messages")
-            yield from self._getMessageWarnings(pluginName, messages, includeInfo)
+            qDebug(f"Checking {plugin.name} for messages...")
+            yield from self._getMessageWarnings(plugin, messages, includeInfo)
         if isinstance(dirtyInfos := pluginData.get("dirty"), list):
-            qDebug(f"Checking if {pluginName} is dirty")
-            yield from self._getDirtyWarnings(pluginPath, dirtyInfos)
+            qDebug(f"Checking if {plugin.name} is dirty...")
+            yield from self._getDirtyWarnings(plugin, dirtyInfos)
 
     def _getMissingRequirementWarnings(
-        self, pluginName: str, requiredFiles: List[Union[str, Dict]]
+        self, plugin: GamebryoPlugin, requiredFiles: List[Union[str, Dict]]
     ) -> Generator[LOOTWarning, None, None]:
         """Get LOOT warnings for missing requirements.
 
         Args:
-            pluginName (str): Name of the plugin
+            plugin (GamebryoPlugin): The plugin to check for missing requirements
             requiredFiles (List[Union[str, Dict]]): List of required files
 
         Yields:
@@ -351,7 +361,7 @@ class LOOTMasterlistLoader:
             if isinstance(file, str):
                 if self._conditionEvaluator._file(file):
                     continue
-                yield MissingRequirementWarning(pluginName, file)
+                yield MissingRequirementWarning(plugin.name, file)
             else:
                 # file datastructure: https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
                 fileName = file["name"]
@@ -359,20 +369,20 @@ class LOOTMasterlistLoader:
                     continue
                 if (condition := file.get("condition")) is not None:
                     try:
-                        if self._conditionEvaluator.evalCondition(condition):
-                            yield MissingRequirementWarning(pluginName, file)
+                        if self._conditionEvaluator.evalCondition(condition, plugin):
+                            yield MissingRequirementWarning(plugin.name, file)
                     except InvalidConditionError as exc:
-                        qCritical(f"Invalid condition in {pluginName}'s masterlist entry: {condition}\n{exc}")
+                        qCritical(f"Invalid condition in {plugin.name}'s masterlist entry: {condition}\n{exc}")
                 else:
-                    yield MissingRequirementWarning(pluginName, file)
+                    yield MissingRequirementWarning(plugin.name, file)
 
     def _getIncompatibilityWarnings(
-        self, pluginName: str, incompatibleFiles: List[Union[str, Dict]]
+        self, plugin: GamebryoPlugin, incompatibleFiles: List[Union[str, Dict]]
     ) -> Generator[IncompatibilityWarning, None, None]:
         """Get LOOT warnings for incompatible files.
 
         Args:
-            pluginName (str): Name of the plugin
+            plugin (GamebryoPlugin): The plugin to check for incompatible files
             incompatibleFiles (List[Union[str, Dict]]): List of incompatible files
 
         Yields:
@@ -381,22 +391,22 @@ class LOOTMasterlistLoader:
         for file in incompatibleFiles:
             if isinstance(file, str):
                 if self._conditionEvaluator._file(file):
-                    yield IncompatibilityWarning(pluginName, file)
+                    yield IncompatibilityWarning(plugin.name, file)
             else:
                 # file datastructure: https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
                 fileName = file["name"]
                 if self._conditionEvaluator._file(fileName):
                     if (condition := file.get("condition")) is not None:
                         try:
-                            if self._conditionEvaluator.evalCondition(condition):
-                                yield IncompatibilityWarning(pluginName, file)
+                            if self._conditionEvaluator.evalCondition(condition, plugin):
+                                yield IncompatibilityWarning(plugin.name, file)
                         except InvalidConditionError:
-                            qCritical(f"Invalid condition in {pluginName}'s masterlist entry: {condition}")
+                            qCritical(f"Invalid condition in {plugin.name}'s masterlist entry: {condition}")
                     else:
-                        yield IncompatibilityWarning(pluginName, file)
+                        yield IncompatibilityWarning(plugin.name, file)
 
     def _getMessageWarnings(
-        self, pluginName: str, messages: List[Dict[str, Any]], includeInfo: bool = False
+        self, plugin: GamebryoPlugin, messages: List[Dict[str, Any]], includeInfo: bool = False
     ) -> Generator[MessageWarning, None, None]:
         """Get LOOT warnings for messages.
 
@@ -404,7 +414,7 @@ class LOOTMasterlistLoader:
         https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-message
 
         Args:
-            pluginName (str): Name of the plugin
+            plugin (GamebryoPlugin): The plugin to check for messages
             messages (List[Dict[str, Any]]): List of messages
             includeInfo (bool): Whether to include info messages in the warnings
 
@@ -414,30 +424,29 @@ class LOOTMasterlistLoader:
         for msg in messages:
             if includeInfo or msg["type"] in ("warn", "error"):
                 if (condition := msg.get("condition", None)) is None:
-                    yield MessageWarning(pluginName, msg)
+                    yield MessageWarning(plugin.name, msg)
                 else:
                     try:
-                        if self._conditionEvaluator.evalCondition(condition):
-                            yield MessageWarning(pluginName, msg)
+                        if self._conditionEvaluator.evalCondition(condition, plugin):
+                            yield MessageWarning(plugin.name, msg)
                     except InvalidConditionError as exc:
-                        qWarning(f"Invalid condition in {pluginName}'s masterlist entry: {condition}\n{exc}")
+                        qWarning(f"Invalid condition in {plugin.name}'s masterlist entry: {condition}\n{exc}")
                         continue
 
     def _getDirtyWarnings(
-        self, pluginPath: str, dirtyInfos: List[Dict[str, Any]]
+        self, plugin: GamebryoPlugin, dirtyInfos: List[Dict[str, Any]]
     ) -> Generator[DirtyPluginWarning, None, None]:
         """Get LOOT warnings for dirty plugins.
 
         https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-dirty
 
         Args:
-            pluginPath (str): Path to the plugin
+            plugin (GamebryoPlugin): Plugin to check
             dirtyInfos (List[Dict[str, Any]]): List of dirty info data structures
 
         Yields:
             DirtyPluginWarning: Dirty plugin warning
         """
-        pluginCRC = computeCRC32(pluginPath)
         for dirtyInfo in dirtyInfos:
-            if dirtyInfo["crc"] == pluginCRC:
-                yield DirtyPluginWarning(os.path.basename(pluginPath), dirtyInfo)
+            if dirtyInfo["crc"] == plugin.crc:
+                yield DirtyPluginWarning(plugin.name, dirtyInfo)
