@@ -57,7 +57,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 1, 1, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 1, 2, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [
@@ -86,12 +86,12 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
     def activeProblems(self) -> List[int]:
         if self.__lootLoader is None:
             return []
-        self.__warnings = {
-            idx: warning
-            for idx, warning in enumerate(
+        self.__warnings = dict(
+            enumerate(
                 self.__lootLoader.getWarnings(bool(self.__organizer.pluginSetting(self.name(), "include-info-messages")))
             )
-        }
+        )
+
         return list(self.__warnings.keys())
 
     def fullDescription(self, key: int) -> str:

@@ -57,6 +57,19 @@
       "ReleaseNotes": [
         "Check for FormID out of range errors in light plugins"
       ]
+    },
+    {
+      "Version": "1.1.2-beta",
+      "Released": "2021-12-28",
+      "MinSupport": "2.4.3",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.1.2-beta/LOOT-Warning-Checker-v1.1.2-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Add support for Kezyma's Root Builder"
+      ]
     }
   ]
 }

@@ -62,7 +62,7 @@ class InvalidConditionError(ValueError):
     pass
 
 
-def computeCRC32(pluginPath: Union[str, bytes, os.PathLike]) -> int:
+def _computeCRC32(pluginPath: Union[str, bytes, os.PathLike]) -> int:
     """Compute the CRC32 of a file.
 
     Args:
@@ -307,19 +307,36 @@ class LOOTConditionEvaluator:
             InvalidConditionError: If the path is not in the game directory
         """
         if relativePath.startswith("../"):
-            absolutePath = os.path.normpath(os.path.join(self._gameDir, relativePath[3:]))
-            if absolutePath.startswith(self._gameDir):
-                return absolutePath
-            raise InvalidConditionError(f"{relativePath} is not inside the game directory.")
-        else:
-            lastSlashIdx = relativePath.rfind("/")
-            relativeDir, relativeFile = (
-                relativePath[: lastSlashIdx + 1],
-                relativePath[lastSlashIdx + 1 :],
-            )
-            if files := self._organizer.findFiles(relativeDir, lambda f: f == relativeFile):
+            return self._getAbsolutePathOutsideDataDir(relativePath[3:])
+        relativeDir, relativeFile = os.path.split(relativePath)
+        if files := self._organizer.findFiles(relativeDir, lambda f: f == relativeFile):
+            return files[0]
+        raise FileNotFoundError(f"File not found: {relativePath}")
+
+    def _getAbsolutePathOutsideDataDir(self, relativePath: str) -> str:
+        """Get the absolute path of a file outside the data directory.
+
+        Args:
+            relativePath (str): A path relative to the game directory
+
+        Returns:
+            str: The absolute path of the file
+
+        Raises:
+            FileNotFoundError: If the file does not exist
+            InvalidConditionError: If the path is not in the game directory
+        """
+        absolutePath = os.path.normpath(os.path.join(self._gameDir, relativePath))
+        if absolutePath.startswith(self._gameDir):
+            if self._isRootBuilderEnabled() and (
+                files := self._organizer.findFiles("Root", lambda f: f == absolutePath[len(self._gameDir) + 1 :])
+            ):
+                qDebug(f"Found '{relativePath}' in Kezyma's Root Builder folder")
                 return files[0]
-            raise FileNotFoundError(f"File not found: {relativePath}")
+            if os.path.exists(absolutePath):
+                return absolutePath
+            raise FileNotFoundError(f"File not found: {absolutePath}")
+        raise InvalidConditionError(f"{relativePath} is not inside the game directory.")
 
     def _getAbsolutePaths(self, relativePattern: str) -> Generator[str, None, None]:
         """Get the absolute paths of files matching a pattern.
@@ -333,24 +350,35 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the pattern is invalid or not in the game directory
         """
-        lastSlashIdx = relativePattern.rfind("/")
-        relativeDir, pattern = (
-            relativePattern[: lastSlashIdx + 1],
-            relativePattern[lastSlashIdx + 1 :],
-        )
+        relativeDir, pattern = os.path.split(relativePattern)
         if relativeDir.startswith("../"):
             absoluteDir = os.path.normpath(os.path.join(self._gameDir, relativeDir[3:]))
+            if not absoluteDir.startswith(self._gameDir):
+                raise InvalidConditionError(f"{relativePattern} is not inside the game directory.")
+            if self._isRootBuilderEnabled() and (
+                files := self._organizer.findFiles(os.path.join(absoluteDir[len(self._gameDir) + 1 :], "Root"), pattern)
+            ):
+                qDebug(f"Found '{relativePattern}' in Kezyma's Root Builder folder")
+                yield from files
             try:
                 matchesRegex = re.compile(pattern).match
             except re.error as exc:
                 raise InvalidConditionError(f"Invalid pattern: {pattern}") from exc
-            if not absoluteDir.startswith(self._gameDir):
-                raise InvalidConditionError(f"{relativePattern} is not inside the game directory.")
             for fileName in os.listdir(absoluteDir):
                 if matchesRegex(fileName):
                     yield os.path.join(absoluteDir, fileName)
         elif files := self._organizer.findFiles(relativeDir, pattern):
             yield from files
+
+    def _isRootBuilderEnabled(self) -> bool:
+        """Check if Kezyma's Root Builder is enabled.
+
+        https://kezyma.github.io/?p=rootbuilder
+
+        Returns:
+            bool: True if Kezyma's Root Builder is enabled
+        """
+        return self._organizer.isPluginEnabled("RootBuilder")
 
     def _file(self, relativePathOrPattern: str) -> bool:
         """Check if a file exists.
@@ -467,7 +495,7 @@ class LOOTConditionEvaluator:
         except FileNotFoundError:
             return False
         if os.path.isfile(filePath):
-            return computeCRC32(filePath) == expectedChecksum
+            return _computeCRC32(filePath) == expectedChecksum
         return False
 
     def _version(
