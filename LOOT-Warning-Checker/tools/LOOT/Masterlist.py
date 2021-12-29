@@ -29,7 +29,7 @@ from PyQt5.QtCore import qCritical, qDebug, qWarning
 from yaml import CSafeLoader, YAMLError, load
 
 from .Conditions import InvalidConditionError, LOOTConditionEvaluator
-from .Plugins import GamebryoPlugin
+from .Plugins import GamebryoPlugin, PluginParseError
 from .Warnings import (
     DirtyPluginWarning,
     FormID_OutOfRangeWarning,
@@ -309,9 +309,14 @@ class LOOTMasterlistLoader:
         """
         for pluginPath in self._organizer.findFiles("", "*.es[lmp]"):
             plugin = GamebryoPlugin(self._game.masterlistRepo, pluginPath)
-            if plugin.isLightPlugin() and not plugin.isValidAsLightPlugin():
-                qDebug(f"Checking if {plugin.name} is an invalid light plugin...")
-                yield FormID_OutOfRangeWarning(plugin.name)
+            try:
+                isInvalidLightPlugin = plugin.isLightPlugin() and not plugin.isValidAsLightPlugin()
+            except PluginParseError as err:
+                qWarning(f"Failed to parse plugin {pluginPath}: {err}.")
+            else:
+                if isInvalidLightPlugin:
+                    qDebug(f"Invalid light plugin detected: {plugin.name}")
+                    yield FormID_OutOfRangeWarning(plugin.name)
             if (pluginData := self._masterlist.get(plugin.name, None)) is not None:
                 try:
                     yield from self._getPluginWarnings(plugin, pluginData, includeInfo)

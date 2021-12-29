@@ -70,6 +70,20 @@
       "ReleaseNotes": [
         "Add support for Kezyma's Root Builder"
       ]
+    },
+    {
+      "Version": "1.1.3-beta",
+      "Released": "2021-12-29",
+      "MinSupport": "2.4.3",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.1.3-beta/LOOT-Warning-Checker-v1.1.3-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Fixed incorrect path splitting and pattern matching while parsing LOOT conditions",
+        "Fixed errors when loading empty plugins"
+      ]
     }
   ]
 }

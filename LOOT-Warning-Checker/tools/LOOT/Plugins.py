@@ -23,6 +23,10 @@ from zlib import crc32
 from esplugin import Plugin
 
 
+class PluginParseError(Exception):
+    """Raised when a plugin fails to parse."""
+
+
 class GamebryoPlugin:
     """Gamebryo plugin.
 
@@ -56,7 +60,15 @@ class GamebryoPlugin:
         return self._crc  # type: ignore
 
     def _loadData(self) -> None:
-        """Load the plugin data from the file content."""
+        """Load the plugin data from the file content.
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
+        """
+        if os.stat(self.path).st_size == 0:
+            self._esplugin = False
+            self._crc = 0
+            return
         with open(self.path, "rb") as f:
             content = f.read()
             self._crc = crc32(content)
@@ -67,13 +79,19 @@ class GamebryoPlugin:
             else:
                 self._esplugin = False
                 return
-            self._esplugin.parse(content, False)
+            try:
+                self._esplugin.parse(content, False)
+            except ValueError as err:
+                raise PluginParseError(err)
 
     def isLightPlugin(self) -> bool:
         """Check if the plugin is a light plugin (ESL).
 
         Returns:
             bool: True if the plugin is a light plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
         """
         if self.name.endswith(".esl"):
             return True
@@ -92,6 +110,9 @@ class GamebryoPlugin:
 
         Returns:
             bool: True if the plugin is valid as a light plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
         """
         if self._esplugin is None:
             self._loadData()

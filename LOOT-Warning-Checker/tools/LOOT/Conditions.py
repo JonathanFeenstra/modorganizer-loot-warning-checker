@@ -89,6 +89,22 @@ def _isRegex(arg: str) -> bool:
     return any(char in arg for char in r":\*?|")
 
 
+def _splitPath(path: str) -> Tuple[str, str]:
+    """Split a LOOT condition path into its directory and filename/pattern.
+
+    Used in favour of `os.path.split` because patterns can contain backslashes.
+
+    Args:
+        path: The path to split.
+
+    Returns:
+        A tuple containing the directory and filename.
+    """
+    # `path.rfind` returns -1 if the character is not found, so directory is "" if no slash is found
+    splitIdx = path.rfind("/") + 1
+    return path[:splitIdx], path[splitIdx:]
+
+
 def _splitOnUnquotedCommas(string: str) -> List[str]:
     """Split a string on commas that are not between quotes.
 
@@ -308,7 +324,7 @@ class LOOTConditionEvaluator:
         """
         if relativePath.startswith("../"):
             return self._getAbsolutePathOutsideDataDir(relativePath[3:])
-        relativeDir, relativeFile = os.path.split(relativePath)
+        relativeDir, relativeFile = _splitPath(relativePath)
         if files := self._organizer.findFiles(relativeDir, lambda f: f == relativeFile):
             return files[0]
         raise FileNotFoundError(f"File not found: {relativePath}")
@@ -350,13 +366,15 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the pattern is invalid or not in the game directory
         """
-        relativeDir, pattern = os.path.split(relativePattern)
+        relativeDir, pattern = _splitPath(relativePattern)
         if relativeDir.startswith("../"):
             absoluteDir = os.path.normpath(os.path.join(self._gameDir, relativeDir[3:]))
             if not absoluteDir.startswith(self._gameDir):
                 raise InvalidConditionError(f"{relativePattern} is not inside the game directory.")
             if self._isRootBuilderEnabled() and (
-                files := self._organizer.findFiles(os.path.join(absoluteDir[len(self._gameDir) + 1 :], "Root"), pattern)
+                files := self._organizer.findFiles(
+                    os.path.join(absoluteDir[len(self._gameDir) + 1 :], "Root"), lambda f: bool(re.match(pattern, f))
+                )
             ):
                 qDebug(f"Found '{relativePattern}' in Kezyma's Root Builder folder")
                 yield from files
@@ -367,7 +385,7 @@ class LOOTConditionEvaluator:
             for fileName in os.listdir(absoluteDir):
                 if matchesRegex(fileName):
                     yield os.path.join(absoluteDir, fileName)
-        elif files := self._organizer.findFiles(relativeDir, pattern):
+        elif files := self._organizer.findFiles(relativeDir, lambda f: bool(re.match(pattern, f))):
             yield from files
 
     def _isRootBuilderEnabled(self) -> bool:
