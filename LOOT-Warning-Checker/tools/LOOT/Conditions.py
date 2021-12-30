@@ -118,7 +118,7 @@ def _splitOnUnquotedCommas(string: str) -> List[str]:
     currentPart = []
     inQuotes = False
     for char in string:
-        if char in ('"', "'"):
+        if char == '"':  # TODO: Handle a mix of single and double quotes
             inQuotes = not inQuotes
             currentPart.append(char)
         elif char == "," and not inQuotes:
@@ -226,7 +226,7 @@ class LOOTConditionEvaluator:
             for match in lootFunctionRegex.finditer(condition):
                 # Replace strings back
                 rawArgs = match.group("args").format(*strings)
-                parsedArgs = self._parseArgs(mo2Function, rawArgs)
+                parsedArgs = list(self._parseArgs(mo2Function, rawArgs))
                 # Evaluate and replace the function with its result
                 result = self._evalFunction(mo2Function, parsedArgs, plugin)
                 qDebug(f"{match.group('func').rsplit('(', 1)[0]}({rawArgs}) = {result}")
@@ -366,7 +366,7 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the pattern is invalid or not in the game directory
         """
-        relativeDir, pattern = _splitPath(relativePattern)
+        relativeDir, pattern = _splitPath(relativePattern + "$")
         if relativeDir.startswith("../"):
             absoluteDir = os.path.normpath(os.path.join(self._gameDir, relativeDir[3:]))
             if not absoluteDir.startswith(self._gameDir):
@@ -432,7 +432,7 @@ class LOOTConditionEvaluator:
         """
         if _isRegex(pluginNameOrPattern):
             try:
-                matchesRegex = re.compile(pluginNameOrPattern).match
+                matchesRegex = re.compile(pluginNameOrPattern + "$").match
             except re.error as exc:
                 raise InvalidConditionError(f"Invalid pattern: {pluginNameOrPattern}") from exc
             return any(
@@ -473,7 +473,7 @@ class LOOTConditionEvaluator:
             InvalidConditionError: If the pattern is invalid
         """
         try:
-            matchesRegex = re.compile(pattern).match
+            matchesRegex = re.compile(pattern + "$").match
         except re.error as exc:
             raise InvalidConditionError(f"Invalid pattern: {pattern}") from exc
         oneFound = False

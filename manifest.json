@@ -84,6 +84,19 @@
         "Fixed incorrect path splitting and pattern matching while parsing LOOT conditions",
         "Fixed errors when loading empty plugins"
       ]
+    },
+    {
+      "Version": "1.1.4-beta",
+      "Released": "2021-12-30",
+      "MinSupport": "2.4.3",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.1.4-beta/LOOT-Warning-Checker-v1.1.4-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Fixed incorrect parsing of single quotes in LOOT condition strings"
+      ]
     }
   ]
 }

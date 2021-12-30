@@ -57,7 +57,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 1, 3, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 1, 4, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [
