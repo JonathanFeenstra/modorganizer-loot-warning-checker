@@ -4,7 +4,7 @@ Plugin
 
 The LOOT Warning Checker plugin.
 
-Copyright (C) 2021 Jonathan Feenstra
+Copyright (C) 2021-2022 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 1, 4, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 1, 5, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [

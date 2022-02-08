@@ -8,7 +8,7 @@ References:
 - https://loot-api.readthedocs.io/en/latest/metadata/conditions.html
 - https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#cond
 
-Copyright (C) 2021 Jonathan Feenstra
+Copyright (C) 2021-2022 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ GPL License and Copyright Notice ============================================
  You should have received a copy of the GNU General Public License
  along with Wrye Bash.  If not, see <https://www.gnu.org/licenses/>.
 
- Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2021 Wrye Bash Team
+ Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2022 Wrye Bash Team
  https://github.com/wrye-bash
 
 =============================================================================
@@ -87,22 +87,6 @@ def _isRegex(arg: str) -> bool:
         True if the argument is a regex
     """
     return any(char in arg for char in r":\*?|")
-
-
-def _splitPath(path: str) -> Tuple[str, str]:
-    """Split a LOOT condition path into its directory and filename/pattern.
-
-    Used in favour of `os.path.split` because patterns can contain backslashes.
-
-    Args:
-        path: The path to split.
-
-    Returns:
-        A tuple containing the directory and filename.
-    """
-    # `path.rfind` returns -1 if the character is not found, so directory is "" if no slash is found
-    splitIdx = path.rfind("/") + 1
-    return path[:splitIdx], path[splitIdx:]
 
 
 def _splitOnUnquotedCommas(string: str) -> List[str]:
@@ -226,7 +210,7 @@ class LOOTConditionEvaluator:
             for match in lootFunctionRegex.finditer(condition):
                 # Replace strings back
                 rawArgs = match.group("args").format(*strings)
-                parsedArgs = list(self._parseArgs(mo2Function, rawArgs))
+                parsedArgs = self._parseArgs(mo2Function, rawArgs)
                 # Evaluate and replace the function with its result
                 result = self._evalFunction(mo2Function, parsedArgs, plugin)
                 qDebug(f"{match.group('func').rsplit('(', 1)[0]}({rawArgs}) = {result}")
@@ -296,7 +280,8 @@ class LOOTConditionEvaluator:
         for arg in parsedArgs:
             if isinstance(arg, str):
                 try:
-                    yield literal_eval(arg)
+                    # Evaluate as raw strings to escape backslashes
+                    yield literal_eval(f"r{arg}")
                 except (
                     ValueError,
                     TypeError,
@@ -324,7 +309,7 @@ class LOOTConditionEvaluator:
         """
         if relativePath.startswith("../"):
             return self._getAbsolutePathOutsideDataDir(relativePath[3:])
-        relativeDir, relativeFile = _splitPath(relativePath)
+        relativeDir, relativeFile = os.path.split(relativePath)
         if files := self._organizer.findFiles(relativeDir, lambda f: f == relativeFile):
             return files[0]
         raise FileNotFoundError(f"File not found: {relativePath}")
@@ -366,7 +351,10 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the pattern is invalid or not in the game directory
         """
-        relativeDir, pattern = _splitPath(relativePattern + "$")
+        # returns -1 if the character is not found, so directory is "" if no slash is found
+        # used in favor of `os.path.split` because patterns can contain backslashes
+        splitIdx = relativePattern.rfind("/") + 1
+        relativeDir, pattern = relativePattern[:splitIdx], f"{relativePattern[splitIdx:]}$"
         if relativeDir.startswith("../"):
             absoluteDir = os.path.normpath(os.path.join(self._gameDir, relativeDir[3:]))
             if not absoluteDir.startswith(self._gameDir):

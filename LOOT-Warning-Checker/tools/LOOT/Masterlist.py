@@ -4,7 +4,7 @@ Masterlist
 
 Detection and parsing of the LOOT masterlist and userlist files.
 
-Copyright (C) 2021 Jonathan Feenstra
+Copyright (C) 2021-2022 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

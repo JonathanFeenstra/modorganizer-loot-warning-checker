@@ -4,7 +4,7 @@ LOOT Warning Checker
 
 The LOOT Warning Checker plugin module.
 
-Copyright (C) 2021 Jonathan Feenstra
+Copyright (C) 2021-2022 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
