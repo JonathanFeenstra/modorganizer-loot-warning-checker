@@ -77,7 +77,7 @@ def compile_xEditFileNameRegex(game: xEditGame) -> re.Pattern:
     Raises:
         re.error: If the regex pattern is invalid
     """
-    return re.compile(fr"(?:{game.specificPrefix}|{game.generalPrefix}|x)Edit\.(?:exe|lnk)")
+    return re.compile(rf"(?:{game.specificPrefix}|{game.generalPrefix}|x)Edit\.(?:exe|lnk)")
 
 
 def get_xEditPathFromRegistry(specificPrefix: str) -> str:
