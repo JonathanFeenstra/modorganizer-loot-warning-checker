@@ -157,6 +157,7 @@ class LOOTConditionEvaluator:
         self._pluginList = organizer.pluginList()
         self._functionMapping = (
             (re.compile(r"(?:^|[\s\(])(?P<func>file\((?P<args>.*?)\))"), self._file),
+            (re.compile(r"(?:^|[\s\(])(?P<func>readable\((?P<args>.*?)\))"), self._readable),
             (
                 re.compile(r"(?:^|[\s\(])(?P<func>active\((?P<args>.*?)\))"),
                 self._active,
@@ -405,6 +406,21 @@ class LOOTConditionEvaluator:
         except FileNotFoundError:
             return False
         return os.path.isfile(absolutePath)
+
+    def _readable(self, relativePath: str) -> bool:
+        """Check if a file or directory is readable.
+
+        Args:
+            relativePath (str): A path relative to the data directory
+
+        Returns:
+            bool: True if the file or directory is readable
+        """
+        try:
+            absolutePath = self._getAbsolutePath(relativePath)
+        except FileNotFoundError:
+            return False
+        return os.access(absolutePath, os.R_OK)
 
     def _active(self, pluginNameOrPattern: str) -> bool:
         """Check if a plugin is active.

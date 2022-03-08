@@ -93,7 +93,7 @@ def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -
         OSError: If the file cannot be written to
     """
     # Version branch may change if the masterlist syntax changes
-    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.17/masterlist.yaml"
+    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.18/masterlist.yaml"
     with urlopen(masterlistURL) as response:
         with open(filePath, "wb") as file:
             file.write(response.read())
