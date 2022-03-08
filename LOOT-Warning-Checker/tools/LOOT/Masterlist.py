@@ -80,9 +80,10 @@ def findMasterlistDir(gameFolder: str) -> str:
     return masterlistDir
 
 
-# TODO: Consider using GitPython to keep track of the masterlist's current version
 def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -> None:
     """Download the masterlist from GitHub to the given file path.
+
+    https://github.com/loot/loot/issues/1490
 
     Args:
         masterlistRepo (str): Name of the masterlist's GitHub repository (not the full URL)
