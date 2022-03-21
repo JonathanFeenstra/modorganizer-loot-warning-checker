@@ -71,12 +71,9 @@ def findMasterlistDir(gameFolder: str) -> str:
     Raises:
         FileExistsError: If a file already exists at the expected path
     """
-    lootDir = os.path.expandvars(r"%LOCALAPPDATA%\LOOT")
-    if not os.path.isdir(lootDir):
-        os.mkdir(lootDir)
-    masterlistDir = os.path.join(lootDir, gameFolder)
-    if not os.path.isdir(masterlistDir):
-        os.mkdir(masterlistDir)
+    gamesDir = os.path.expandvars(r"%LOCALAPPDATA%\LOOT\games")
+    masterlistDir = os.path.join(gamesDir, gameFolder)
+    os.makedirs(masterlistDir, exist_ok=True)
     return masterlistDir
 
 
