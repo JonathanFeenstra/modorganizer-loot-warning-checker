@@ -22,12 +22,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import os
 import site
 
+from typing import List
+
 site.addsitedir(os.path.join(os.path.dirname(__file__), "lib"))
 
 from mobase import IPlugin
 
-from .Plugin import LOOTWarningChecker
+from .CheckerPlugin import LOOTWarningChecker
+from .TogglePlugin import LOOTWarningToggle
 
 
-def createPlugin() -> IPlugin:
-    return LOOTWarningChecker()
+def createPlugins() -> List[IPlugin]:
+    return [LOOTWarningChecker(), LOOTWarningToggle()]

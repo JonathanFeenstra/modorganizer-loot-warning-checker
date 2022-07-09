@@ -1,6 +1,6 @@
 """
-Plugin
-======
+Checker Plugin
+==============
 
 The LOOT Warning Checker plugin.
 
@@ -45,6 +45,9 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         if not self.__organizer.onUserInterfaceInitialized(self.__onUserInterfaceInitialized):
             qCritical(self.__tr("Failed to register onUserInterfaceInitialized callback."))
             return False
+        if not self.__organizer.onPluginSettingChanged(self.__onPluginSettingChanged):
+            qCritical(self.__tr("Failed to register onPluginSettingChanged callback."))
+            return False
         return True
 
     def name(self) -> str:
@@ -57,12 +60,10 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 1, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 2, 2, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
-        return [
-            mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys())),
-        ]
+        return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
 
     def settings(self) -> List[mobase.PluginSetting]:
         return [
@@ -84,7 +85,10 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         ]
 
     def activeProblems(self) -> List[int]:
-        if self.__lootLoader is None:
+        if self.__lootLoader is None or (
+            self.__organizer.isPluginEnabled("LOOT Warning Toggle")
+            and not self.__organizer.pluginSetting("LOOT Warning Toggle", "enable-warnings")
+        ):
             return []
         self.__warnings = dict(
             enumerate(
@@ -111,7 +115,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         # TODO: Implement more guided fixes
 
     def __tr(self, txt: str) -> str:
-        return QApplication.translate("DirtyPluginChecker", txt)
+        return QApplication.translate("LOOTWarningChecker", txt)
 
     def __onUserInterfaceInitialized(self, mainWindow: QMainWindow) -> None:
         self.__parentWidget = mainWindow
@@ -131,6 +135,15 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 self.__lootLoader = LOOTMasterlistLoader(self.__organizer, game.lootGame)
             except OSError as exc:
                 qCritical(str(exc))
+
+    def __onPluginSettingChanged(
+        self, pluginName: str, settingName: str, oldValue: mobase.MoVariant, newValue: mobase.MoVariant
+    ) -> None:
+        if pluginName == "LOOT Warning Toggle" and settingName == "enable-warnings":
+            if oldValue and not newValue:
+                self._invalidate()
+            else:
+                self.__organizer.refresh()
 
     def __quickAutoCleanPlugin(self, pluginName: str) -> None:
         """Use xEdit's Quick Auto Clean mode to clean the plugin.

@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - run: |
+          echo ${{ format('ARCHIVE=LOOT-Warning-Checker-{0}.zip', github.ref_name) }} >> $env:GITHUB_ENV 
+          echo "RELEASE_NOTES<<EOF" >> $env:GITHUB_ENV
+          jq -r .Versions[-1].ReleaseNotes[] .\manifest.json >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
+      - run: |
+          echo "RELEASE_NOTES<<EOF" >> $env:GITHUB_ENV
+          echo $env:RELEASE_NOTES | foreach {"* " + $_} >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
+        if: contains(env.RELEASE_NOTES, '\n')
+      - name: Zip
+        run: |
+          7z a -tzip -mx9 $env:ARCHIVE img LOOT-Warning-Checker LICENSE README.md
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ env.RELEASE_NOTES }}
+          draft: true
+          prerelease: ${{ endsWith(github.ref_name, 'alpha') || endsWith(github.ref_name, 'beta') }}
+          files: ${{ env.ARCHIVE }}
+          fail_on_unmatched_files: true

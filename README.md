@@ -9,10 +9,12 @@
 
 ## Features
 - Parse LOOT's masterlist and userlist to diagnose your modlist for warnings
+- Display the warnings as notifications in Mod Organizer
+- Guided fix for cleaning dirty plugins using [xEdit](https://github.com/TES5Edit/TES5Edit) (unless a manual fix is required)
 - Configurable settings to:
     - Enable/disable automatically updating LOOT's masterlist
     - Enable/disable displaying non-warning messages
-- Guided fix for cleaning dirty plugins using [xEdit](https://github.com/TES5Edit/TES5Edit), unless a manual fix is required
+- Tool menu option to quickly toggle whether to check for LOOT warnings
 - Support for:
     - Morrowind
     - Oblivion
@@ -28,4 +30,4 @@
     - Fallout 4 VR
 
 ## Installation
-Add the [LOOT-Warning-Checker folder](/LOOT-Warning-Checker) to your Mod Organizer 2 plugins folder or install it using [Kezyma's Plugin Finder](https://www.nexusmods.com/skyrimspecialedition/mods/59869).
+Add the [LOOT-Warning-Checker folder](/LOOT-Warning-Checker) to your Mod Organizer plugins folder or install it using [Kezyma's Plugin Finder](https://www.nexusmods.com/skyrimspecialedition/mods/59869). Remove the contents of the existing folder before updating to a newer version.

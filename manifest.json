@@ -136,6 +136,19 @@
       "ReleaseNotes": [
         "Update masterlist directory path"
       ]
+    },
+    {
+      "Version": "1.2.2-beta",
+      "Released": "2022-07-09",
+      "MinSupport": "2.4.3",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.2.2-beta/LOOT-Warning-Checker-v1.2.2-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Add a toggle option for LOOT warnings to the tools menu"
+      ]
     }
   ]
 }
