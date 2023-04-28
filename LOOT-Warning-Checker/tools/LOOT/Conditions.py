@@ -8,7 +8,7 @@ References:
 - https://loot-api.readthedocs.io/en/latest/metadata/conditions.html
 - https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#cond
 
-Copyright (C) 2021-2022 Jonathan Feenstra
+Copyright (C) 2021-2023 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
