@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 2, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 2, 3, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -80,6 +80,11 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             mobase.PluginSetting(
                 "xedit-directory",
                 self.__tr("Folder where the xEdit executables are located"),
+                "",
+            ),
+            mobase.PluginSetting(
+                "xedit-data-path",
+                self.__tr("Data path argument (-D:) to pass to xEdit"),
                 "",
             ),
         ]
@@ -161,6 +166,8 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             args = ["-qac", "-autoexit", "-autoload", f'"{pluginName}"']
             if not xEditPath.endswith(f"{game.specificPrefix}Edit.exe"):
                 args.append(f"-{game.specificPrefix.lower()}")
+            if dataPath := self.__organizer.pluginSetting(self.name(), "xedit-data-path"):
+                args.append(f'-D:"{dataPath}"')
             self.__organizer.startApplication(xEditPath, args=args)
             self.__organizer.refresh()
         # if executable is None, xEdit was not found and user canceled prompt
