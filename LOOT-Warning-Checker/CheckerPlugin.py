@@ -27,7 +27,7 @@ from PyQt5.QtCore import qCritical, qDebug, qInfo
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 
 from .Games import SUPPORTED_GAMES
-from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, findMasterlistDir
+from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, getMasterlistDir
 from .tools.xEdit import get_xEditPathFromRegistry, scan_xEditDirectoryForExecutable, xEditGame
 
 
@@ -121,7 +121,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 repoName, gameFolder = game.lootGame
                 qInfo(self.__tr("Updating LOOT masterlist..."))
                 try:
-                    downloadMasterlist(repoName, findMasterlistDir(gameFolder))
+                    downloadMasterlist(repoName, getMasterlistDir(self.__organizer.getPluginDataPath(), gameFolder))
                 except OSError as exc:
                     qCritical(str(exc))
                 else:

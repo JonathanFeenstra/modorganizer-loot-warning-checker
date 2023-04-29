@@ -149,6 +149,20 @@
       "ReleaseNotes": [
         "Add a toggle option for LOOT warnings to the tools menu"
       ]
+    },
+    {
+      "Version": "1.2.3-beta",
+      "Released": "2023-04-29",
+      "MinSupport": "2.4.3",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.2.3-beta/LOOT-Warning-Checker-v1.2.3-beta.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Add a setting to specify the Data path argument for xEdit",
+        "Store the LOOT masterlist in a separate location for better compatibility"
+      ]
     }
   ]
 }

@@ -58,11 +58,12 @@ class LOOTGame(NamedTuple):
     folder: str
 
 
-def findMasterlistDir(gameFolder: str) -> str:
+def getMasterlistDir(pluginDataPath: str, gameFolder: str) -> str:
     """
-    Find the masterlist's directory for the given game folder (create it if it doesn't exist).
+    Get the masterlist's directory for the given game folder (create it if it doesn't exist).
 
     Args:
+        pluginDataPath (str): MO2's directory for plugin data, typically /plugins/data
         gameFolder (str): Name of the game's local appdata folder
 
     Returns:
@@ -71,8 +72,7 @@ def findMasterlistDir(gameFolder: str) -> str:
     Raises:
         FileExistsError: If a file already exists at the expected path
     """
-    gamesDir = os.path.expandvars(r"%LOCALAPPDATA%\LOOT\games")
-    masterlistDir = os.path.join(gamesDir, gameFolder)
+    masterlistDir = os.path.join(pluginDataPath, "LOOT Warning Checker", gameFolder)
     os.makedirs(masterlistDir, exist_ok=True)
     return masterlistDir
 
@@ -267,7 +267,7 @@ class LOOTMasterlistLoader:
         Returns:
             Dict[str, Dict[str, Any]]: The masterlist merged with the userlist as a dictionary
         """
-        masterlistDir = findMasterlistDir(self._game.folder)
+        masterlistDir = getMasterlistDir(self._organizer.getPluginDataPath(), self._game.folder)
         masterlistPath = os.path.join(masterlistDir, "masterlist.yaml")
         if not os.path.isfile(masterlistPath):
             qDebug(f"Masterlist not found at {masterlistPath}, downloading...")
