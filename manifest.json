@@ -162,6 +162,9 @@
       "ReleaseNotes": [
         "Add a setting to specify the Data path argument for xEdit",
         "Store the LOOT masterlist in a separate location for better compatibility"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
       ]
     }
   ]
