@@ -32,7 +32,7 @@ from .tools.xEdit import get_xEditPathFromRegistry, scan_xEditDirectoryForExecut
 
 
 class LOOTWarningChecker(mobase.IPluginDiagnose):
-
+    __TOGGLE_PLUGIN_NAME = "LOOT Warning Toggle"
     __warnings: Dict[int, LOOTWarning] = {}
     __lootLoader: Optional[LOOTMasterlistLoader] = None
 
@@ -85,17 +85,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         ]
 
     def activeProblems(self) -> List[int]:
-        if self.__lootLoader is None or (
-            self.__organizer.isPluginEnabled("LOOT Warning Toggle")
-            and not self.__organizer.pluginSetting("LOOT Warning Toggle", "enable-warnings")
-        ):
-            return []
-        self.__warnings = dict(
-            enumerate(
-                self.__lootLoader.getWarnings(bool(self.__organizer.pluginSetting(self.name(), "include-info-messages")))
-            )
-        )
-
+        self.__updateWarnings()
         return list(self.__warnings.keys())
 
     def fullDescription(self, key: int) -> str:
@@ -139,11 +129,25 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
     def __onPluginSettingChanged(
         self, pluginName: str, settingName: str, oldValue: mobase.MoVariant, newValue: mobase.MoVariant
     ) -> None:
-        if pluginName == "LOOT Warning Toggle" and settingName == "enable-warnings":
+        if pluginName == self.__TOGGLE_PLUGIN_NAME and settingName == "enable-warnings":
             if oldValue and not newValue:
                 self._invalidate()
             else:
                 self.__organizer.refresh()
+
+    def __updateWarnings(self) -> None:
+        if self.__shouldUpdateWarnings():
+            self.__warnings = dict(
+                enumerate(
+                    self.__lootLoader.getWarnings(bool(self.__organizer.pluginSetting(self.name(), "include-info-messages")))
+                )
+            )
+
+    def __shouldUpdateWarnings(self) -> bool:
+        return self.__lootLoader is not None and (
+            self.__organizer.isPluginEnabled(self.__TOGGLE_PLUGIN_NAME)
+            and not self.__organizer.pluginSetting(self.__TOGGLE_PLUGIN_NAME, "enable-warnings")
+        )
 
     def __quickAutoCleanPlugin(self, pluginName: str) -> None:
         """Use xEdit's Quick Auto Clean mode to clean the plugin.
@@ -172,24 +176,23 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         """
         if xEditDir := self.__organizer.pluginSetting(self.name(), "xedit-directory"):
             try:
-                path = scan_xEditDirectoryForExecutable(xEditDir, game)
+                return scan_xEditDirectoryForExecutable(xEditDir, game)
             except FileNotFoundError:
                 qDebug(f"Invalid xEdit directory found in settings: {xEditDir}")
-                path = None
-            if path is not None:
-                return path
 
         # xEdit directory setting is invalid and needs to be (re)set
         qDebug("Looking for xEdit path in registry...")
         try:
             path = get_xEditPathFromRegistry(game.specificPrefix)
-            qDebug(f"Found xEdit path in registry: {path}")
         except OSError:
-            path = None
             qDebug("Could not find xEdit executable in registry.")
-
-        if path is None or not os.path.isfile(path):
             path = self.__start_xEditDirectorySelectionDialog(game)
+        else:
+            if os.path.isfile(path):
+                qDebug(f"Found xEdit path in registry: {path}")
+            else:
+                qDebug(f"xEdit path in registry is not a file: {path}")
+                path = self.__start_xEditDirectorySelectionDialog(game)
 
         if path is not None and os.path.isfile(path):
             self.__organizer.setPluginSetting(self.name(), "xedit-directory", os.path.dirname(path))
