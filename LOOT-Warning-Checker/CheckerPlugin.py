@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 3, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 2, 4, mobase.ReleaseType.BETA)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -136,6 +136,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
     ) -> None:
         if pluginName == self.__TOGGLE_PLUGIN_NAME and settingName == "enable-warnings":
             if oldValue and not newValue:
+                self.__warnings.clear()
                 self._invalidate()
             else:
                 self.__organizer.refresh()
@@ -150,8 +151,8 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
 
     def __shouldUpdateWarnings(self) -> bool:
         return self.__lootLoader is not None and (
-            self.__organizer.isPluginEnabled(self.__TOGGLE_PLUGIN_NAME)
-            and not self.__organizer.pluginSetting(self.__TOGGLE_PLUGIN_NAME, "enable-warnings")
+            not self.__organizer.isPluginEnabled(self.__TOGGLE_PLUGIN_NAME)
+            or self.__organizer.pluginSetting(self.__TOGGLE_PLUGIN_NAME, "enable-warnings")
         )
 
     def __quickAutoCleanPlugin(self, pluginName: str) -> None:
