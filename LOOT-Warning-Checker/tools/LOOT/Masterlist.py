@@ -20,15 +20,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import os
-from typing import Any, Dict, Generator, List, NamedTuple, Union
+import re
+from typing import Any, Dict, Final, Generator, List, NamedTuple, Optional, Union
 from urllib.error import URLError
 from urllib.request import urlopen
 
 from mobase import IOrganizer
 from PyQt5.QtCore import qCritical, qDebug, qWarning
-from yaml import CSafeLoader, YAMLError, load
+from yaml import CLoader, YAMLError, load
 
-from .Conditions import InvalidConditionError, LOOTConditionEvaluator
+from .Conditions import InvalidConditionError, LOOTConditionEvaluator, isRegex
 from .Plugins import GamebryoPlugin, PluginParseError
 from .Warnings import (
     DirtyPluginWarning,
@@ -38,6 +39,8 @@ from .Warnings import (
     MessageWarning,
     MissingRequirementWarning,
 )
+
+CHECKER_PLUGIN_NAME: Final[str] = "LOOT Warning Checker"
 
 
 class LOOTGame(NamedTuple):
@@ -58,112 +61,114 @@ class LOOTGame(NamedTuple):
     folder: str
 
 
-def getMasterlistDir(pluginDataPath: str, gameFolder: str) -> str:
+class _LOOTMasterlist:
+    """LOOT masterlist containing metadata for plugin warnings.
+
+    Attributes:
+        path (Union[str, bytes, os.PathLike]): Path to the masterlist file
     """
-    Get the masterlist's directory for the given game folder (create it if it doesn't exist).
 
-    Args:
-        pluginDataPath (str): MO2's directory for plugin data, typically /plugins/data
-        gameFolder (str): Name of the game's local appdata folder
+    def __init__(self, path: Union[str, bytes, os.PathLike]) -> None:
+        """Initialize the masterlist.
 
-    Returns:
-        str: Path to the masterlist's directory
+        Args:
+            path (Union[str, bytes, os.PathLike]): Path to the masterlist file
 
-    Raises:
-        FileExistsError: If a file already exists at the expected path
-    """
-    masterlistDir = os.path.join(pluginDataPath, "LOOT Warning Checker", gameFolder)
-    os.makedirs(masterlistDir, exist_ok=True)
-    return masterlistDir
+        Raises:
+            FileNotFoundError: If the masterlist file does not exist
+            yaml.YAMLError: If the masterlist file cannot be parsed
+            ValueError: If the masterlist file contains invalid data
+        """
+        self.path = path
 
+        qDebug(f"Loading masterlist from {path}")
+        with open(path, "r", encoding="utf-8") as file:
+            data = load(file, CLoader)
 
-def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -> None:
-    """Download the masterlist from GitHub to the given file path.
+        if not isinstance(data, dict) or data.get("plugins") is None:
+            raise ValueError("Invalid masterlist file.")
 
-    https://github.com/loot/loot/issues/1490
+        self._nameEntries: Dict[str, Dict[str, Any]] = {}
+        self._regexEntries: Dict[str, Dict[str, Any]] = {}
 
-    Args:
-        masterlistRepo (str): Name of the masterlist's GitHub repository (not the full URL)
-        filePath (str): Path to the masterlist's file (download location)
+        self._addEntries(data)
 
-    Raises:
-        urllib.error.URLError: If the download fails
-        OSError: If the file cannot be written to
-    """
-    # Version branch may change if the masterlist syntax changes
-    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.18/masterlist.yaml"
-    with urlopen(masterlistURL) as response:
-        with open(filePath, "wb") as file:
-            file.write(response.read())
+    def _addEntries(self, data: Dict[str, Any]) -> None:
+        for entry in data["plugins"]:
+            # PyYAML seems to make some names lowercase, so this makes it consistent
+            name = entry.pop("name").lower()
 
+            if isRegex(name):
+                self._addRegex(entry, name)
+            else:
+                self._nameEntries[name] = entry
 
-def _parseMasterlist(masterlistPath: Union[str, bytes, os.PathLike]) -> Dict[str, Dict[str, Any]]:
-    """Parse the masterlist file at the given path.
-
-    Args:
-        masterlistPath (str): Path to the masterlist's file
-
-    Returns:
-        Dict[str, Dict[str, Any]]: Plugin names mapped to their metadata
-
-    Raises:
-        FileNotFoundError: If the masterlist file does not exist
-        yaml.YAMLError: If the masterlist file cannot be parsed
-        ValueError: If the masterlist file contains invalid data
-    """
-    with open(masterlistPath, "r", encoding="utf-8") as file:
-        masterlist = load(file, CSafeLoader)
-    if not isinstance(masterlist, dict) or masterlist.get("plugins") is None:
-        raise ValueError("Invalid masterlist file.")
-    return {plugin.pop("name"): plugin for plugin in masterlist["plugins"]}
-
-
-def _mergeLists(masterlist: Dict[str, Dict[str, Any]], userlist: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    """Merge the masterlist and userlist into a single dictionary.
-
-    Currently only merges data used by the MO2 plugin.
-
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-plugin-merge
-
-    Args:
-        masterlist (Dict[str, Dict[str, Any]]): Parsed masterlist
-        userlist (Dict[str, Dict[str, Any]]): Parsed userlist
-
-    Returns:
-        Dict[str, Dict[str, Any]]: Merged masterlist and userlist
-    """
-    for pluginName, userData in userlist.items():
-        if pluginName not in masterlist:
-            masterlist[pluginName] = userData
+    def _addRegex(self, entry: Dict[str, Any], name: str) -> None:
+        try:
+            entry["regex"] = re.compile(name)
+        except re.error:
+            qWarning(f"Invalid regular expression in masterlist: {name}")
         else:
-            masterData = masterlist[pluginName]
-            masterData = _mergePluginData(masterData, userData)
-    return masterlist
+            self._regexEntries[name] = entry
+
+    def getEntry(self, pluginName: str) -> Optional[Dict[str, Any]]:
+        """Get the masterlist entry for the given plugin name.
+
+        Args:
+            pluginName (str): Name of the plugin
+
+        Returns:
+            Optional[Dict[str, Any]]: The masterlist entry, or None if it does not exist
+        """
+        pluginName = pluginName.lower()
+        return self._nameEntries.get(pluginName, None) or self._getRegexEntry(pluginName)
+
+    def _getRegexEntry(self, pluginName: str) -> Optional[Dict[str, Any]]:
+        for entry in self._regexEntries.values():
+            if entry["regex"].match(pluginName):
+                return entry
+        return None
+
+    def merge(self, other: "_LOOTMasterlist") -> None:
+        """Merge the given masterlist into this one.
+
+        Currently only merges data used by the MO2 plugin.
+
+        https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-plugin-merge
+
+        Args:
+            other (_LOOTMasterlist): Masterlist to merge into this one
+        """
+        for pluginName, entry in other._nameEntries.items():
+            if pluginName not in self._nameEntries:
+                self._nameEntries[pluginName] = entry
+            else:
+                _mergeEntry(self._nameEntries[pluginName], other._nameEntries[pluginName])
+
+        for regex, entry in other._regexEntries.items():
+            if regex not in self._regexEntries:
+                self._regexEntries[regex] = entry
+            else:
+                _mergeEntry(self._regexEntries[regex], other._regexEntries[regex])
 
 
-def _mergePluginData(masterData: Dict[str, Any], userData: Dict[str, Any]) -> Dict[str, Any]:
-    """Merge the masterlist and userlist plugin data.
+def _mergeEntry(entry1: Dict[str, Any], entry2: Dict[str, Any]) -> None:
+    """Merge the given masterlist entries.
 
-    Currently only merges data used by the MO2 plugin.
-
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-plugin-merge
+    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
 
     Args:
-        masterData (Dict[str, Any]): Parsed masterlist plugin data
-        userData (Dict[str, Any]): Parsed userlist plugin data
-
-    Returns:
-        Dict[str, Any]: Merged masterlist and userlist plugin data
+        entry1 (Dict[str, Any]): First masterlist entry
+        entry2 (Dict[str, Any]): Second masterlist entry
     """
-    if userReq := userData.get("req"):
-        masterData["req"] = _mergeFileSets(masterData.get("req", []), userReq)
-    if userInc := userData.get("inc"):
-        masterData["inc"] = _mergeFileSets(masterData.get("inc", []), userInc)
-    if userMsg := userData.get("msg"):
-        masterData["msg"] = _mergeMessageLists(masterData.get("msg", []), userMsg)
-    if userDirty := userData.get("dirty"):
-        masterData["dirty"] = _mergeDirtyInfoSets(masterData.get("dirty", []), userDirty)
-    return masterData
+    if req := entry2.get("req"):
+        entry1["req"] = _mergeFileSets(entry1.get("req", []), req)
+    if inc := entry2.get("inc"):
+        entry1["inc"] = _mergeFileSets(entry1.get("inc", []), inc)
+    if msg := entry2.get("msg"):
+        entry1["msg"] = _mergeMessageLists(entry1.get("msg", []), msg)
+    if dirty := entry2.get("dirty"):
+        entry1["dirty"] = _mergeDirtyInfoSets(entry1.get("dirty", []), dirty)
 
 
 def _mergeFileSets(masterFileSet: List[Union[str, Dict]], userFileSet: List[Union[str, Dict]]) -> List[Union[str, Dict]]:
@@ -247,6 +252,45 @@ def _mergeDirtyInfoSets(
     return masterDirtyInfoSet
 
 
+def getMasterlistPath(pluginDataPath: str, gameFolder: str) -> str:
+    """
+    Get the path to the masterlist for the given game folder (create it if it doesn't exist).
+
+    Args:
+        pluginDataPath (str): MO2's directory for the plugin's data, typically /plugins/data/<plugin name>
+        gameFolder (str): Name of the game's local appdata folder
+
+    Returns:
+        str: Path to the masterlist.yaml file
+
+    Raises:
+        FileExistsError: If a file already exists at the expected path
+    """
+    masterlistDir = os.path.join(pluginDataPath, gameFolder)
+    os.makedirs(masterlistDir, exist_ok=True)
+    return os.path.join(masterlistDir, "masterlist.yaml")
+
+
+def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -> None:
+    """Download the masterlist from GitHub to the given file path.
+
+    https://github.com/loot/loot/issues/1490
+
+    Args:
+        masterlistRepo (str): Name of the masterlist's GitHub repository (not the full URL)
+        filePath (str): Path to the masterlist's file (download location)
+
+    Raises:
+        urllib.error.URLError: If the download fails
+        OSError: If the file cannot be written to
+    """
+    # Version branch may change if the masterlist syntax changes
+    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.18/masterlist.yaml"
+    with urlopen(masterlistURL) as response:
+        with open(filePath, "wb") as file:
+            file.write(response.read())
+
+
 class LOOTMasterlistLoader:
     """Loader for the LOOT masterlist data."""
 
@@ -261,14 +305,13 @@ class LOOTMasterlistLoader:
         self._conditionEvaluator = LOOTConditionEvaluator(organizer)
         self._masterlist = self._loadLists()
 
-    def _loadLists(self) -> Dict[str, Dict[str, Any]]:
+    def _loadLists(self) -> _LOOTMasterlist:
         """Load the masterlist and userlist files.
 
         Returns:
-            Dict[str, Dict[str, Any]]: The masterlist merged with the userlist as a dictionary
+            _LOOTMasterlist: Parsed masterlist data
         """
-        masterlistDir = getMasterlistDir(self._organizer.getPluginDataPath(), self._game.folder)
-        masterlistPath = os.path.join(masterlistDir, "masterlist.yaml")
+        masterlistPath = getMasterlistPath(self._organizer.getPluginDataPath(), self._game.folder)
         if not os.path.isfile(masterlistPath):
             qDebug(f"Masterlist not found at {masterlistPath}, downloading...")
             try:
@@ -282,19 +325,27 @@ class LOOTMasterlistLoader:
             else:
                 qDebug("Masterlist download complete.")
         try:
-            masterlist = _parseMasterlist(masterlistPath)
+            masterlist = _LOOTMasterlist(masterlistPath)
         except (FileNotFoundError, YAMLError, ValueError) as exc:
             qCritical(f"Failed to parse masterlist for {self._game.folder}.\n{exc}")
             return {}
-        userlistPath = os.path.join(masterlistDir, "userlist.yaml")
+
+        userlistPath = self._getUserlistPath()
         if os.path.isfile(userlistPath):
             try:
-                userlist = _parseMasterlist(userlistPath)
+                userlist = _LOOTMasterlist(userlistPath)
             except (FileNotFoundError, YAMLError, ValueError) as exc:
                 qCritical(f"Failed to parse userlist for {self._game.folder}.\n{exc}")
-                return masterlist
-            masterlist = _mergeLists(masterlist, userlist)
+            else:
+                masterlist.merge(userlist)
         return masterlist
+
+    def _getUserlistPath(self) -> str:
+        userlistsDir = self._organizer.pluginSetting(CHECKER_PLUGIN_NAME, "userlists-directory")
+        if userlistsDir == "":
+            userlistsDir = os.path.join(self._organizer.getPluginDataPath(), CHECKER_PLUGIN_NAME)
+            self._organizer.setPluginSetting(CHECKER_PLUGIN_NAME, "userlists-directory", userlistsDir)
+        return os.path.join(userlistsDir, self._game.folder, "userlist.yaml")
 
     def getWarnings(self, includeInfo: bool = False) -> Generator[LOOTWarning, None, None]:
         """Get a list of warnings from LOOT for the loaded list of plugins.
@@ -315,36 +366,38 @@ class LOOTMasterlistLoader:
                 if isInvalidLightPlugin:
                     qDebug(f"Invalid light plugin detected: {plugin.name}")
                     yield FormID_OutOfRangeWarning(plugin.name)
-            if (pluginData := self._masterlist.get(plugin.name, None)) is not None:
+            if (entry := self._masterlist.getEntry(plugin.name)) is not None:
                 try:
-                    yield from self._getPluginWarnings(plugin, pluginData, includeInfo)
+                    yield from self._getPluginWarnings(plugin, entry, includeInfo)
                 except Exception as exc:
                     # Prevent unexpected errors from checking the rest of the plugins
                     qCritical(f"Error while processing {plugin.name}: {exc}")
+            else:
+                qDebug(f"Plugin {plugin.name} not found in masterlist.")
 
     def _getPluginWarnings(
-        self, plugin: GamebryoPlugin, pluginData: Dict[str, Any], includeInfo: bool = False
+        self, plugin: GamebryoPlugin, entry: Dict[str, Any], includeInfo: bool = False
     ) -> Generator[LOOTWarning, None, None]:
         """Get LOOT's warnings for the given plugin.
 
         Args:
             plugin (GamebryoPlugin): Plugin to check
-            pluginData (dict): Plugin's metadata
+            entry (dict): Plugin's entry in the masterlist
             includeInfo (bool): Whether to include info messages in the warnings
 
         Yields:
             LOOTWarning: LOOT's warnings for the given plugin
         """
-        if isinstance(requiredFiles := pluginData.get("req"), list):
+        if isinstance(requiredFiles := entry.get("req"), list):
             qDebug(f"Checking {plugin.name} for missing requirements...")
             yield from self._getMissingRequirementWarnings(plugin, requiredFiles)
-        if isinstance(incompatibleFiles := pluginData.get("inc"), list):
+        if isinstance(incompatibleFiles := entry.get("inc"), list):
             qDebug(f"Checking {plugin.name} for incompatible files...")
             yield from self._getIncompatibilityWarnings(plugin, incompatibleFiles)
-        if isinstance(messages := pluginData.get("msg"), list):
+        if isinstance(messages := entry.get("msg"), list):
             qDebug(f"Checking {plugin.name} for messages...")
             yield from self._getMessageWarnings(plugin, messages, includeInfo)
-        if isinstance(dirtyInfos := pluginData.get("dirty"), list):
+        if isinstance(dirtyInfos := entry.get("dirty"), list):
             qDebug(f"Checking if {plugin.name} is dirty...")
             yield from self._getDirtyWarnings(plugin, dirtyInfos)
 

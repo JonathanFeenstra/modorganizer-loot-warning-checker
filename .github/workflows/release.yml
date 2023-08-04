@@ -18,9 +18,9 @@ jobs:
           echo "EOF" >> $env:GITHUB_ENV
       - run: |
           echo "RELEASE_NOTES<<EOF" >> $env:GITHUB_ENV
-          echo $env:RELEASE_NOTES | foreach {"* " + $_} >> $env:GITHUB_ENV
+          echo $env:RELEASE_NOTES -split "\n" | foreach {"* " + $_} >> $env:GITHUB_ENV
           echo "EOF" >> $env:GITHUB_ENV
-        if: contains(env.RELEASE_NOTES, '\n')
+        if: ${{ env.RELEASE_NOTES }} =~ '*\n*'
       - name: Zip
         run: |
           7z a -tzip -mx9 $env:ARCHIVE img LOOT-Warning-Checker LICENSE README.md
@@ -29,6 +29,6 @@ jobs:
         with:
           body: ${{ env.RELEASE_NOTES }}
           draft: true
-          prerelease: ${{ endsWith(github.ref_name, 'alpha') || endsWith(github.ref_name, 'beta') }}
+          prerelease: ${{ github.ref_name }} =~ *-(alpha|beta|rc[0-9]+)$
           files: ${{ env.ARCHIVE }}
           fail_on_unmatched_files: true

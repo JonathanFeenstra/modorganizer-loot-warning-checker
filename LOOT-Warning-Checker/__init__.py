@@ -21,7 +21,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import os
 import site
-
 from typing import List
 
 site.addsitedir(os.path.join(os.path.dirname(__file__), "lib"))
