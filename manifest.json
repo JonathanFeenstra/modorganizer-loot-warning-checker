@@ -182,6 +182,23 @@
       "DataPath": [
         "data/LOOT Warning Checker"
       ]
+    },
+    {
+      "Version": "1.2.5-rc1",
+      "Released": "2023-08-04",
+      "MinSupport": "2.4.4",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.2.5-rc1/LOOT-Warning-Checker-v1.2.5-rc1.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Fix parsing of case-sensitive/regex plugin names in the masterlist",
+        "Add a setting to specify a custom userlist path"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
+      ]
     }
   ]
 }

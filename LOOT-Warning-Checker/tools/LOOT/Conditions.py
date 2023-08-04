@@ -75,7 +75,7 @@ def _computeCRC32(pluginPath: Union[str, bytes, os.PathLike]) -> int:
         return crc32(f.read())
 
 
-def _isRegex(arg: str) -> bool:
+def isRegex(arg: str) -> bool:
     """Check if an argument is a regex according to LOOT.
 
     https://loot-api.readthedocs.io/en/latest/metadata/conditions.html#functions
@@ -399,7 +399,7 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the path or pattern is not in the game directory
         """
-        if _isRegex(relativePathOrPattern):
+        if isRegex(relativePathOrPattern):
             return bool(next(self._getAbsolutePaths(relativePathOrPattern), False))
         try:
             absolutePath = self._getAbsolutePath(relativePathOrPattern)
@@ -434,7 +434,7 @@ class LOOTConditionEvaluator:
         Raises:
             InvalidConditionError: If the pattern is invalid
         """
-        if _isRegex(pluginNameOrPattern):
+        if isRegex(pluginNameOrPattern):
             try:
                 matchesRegex = re.compile(pluginNameOrPattern + "$").match
             except re.error as exc:

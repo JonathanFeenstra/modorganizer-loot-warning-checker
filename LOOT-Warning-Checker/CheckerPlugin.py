@@ -20,19 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import os
-from typing import Dict, List, Optional
+from typing import Dict, Final, List, Optional
 
 import mobase
 from PyQt5.QtCore import qCritical, qDebug, qInfo
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 
-from .Games import SUPPORTED_GAMES
-from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, getMasterlistDir
+from .Games import SUPPORTED_GAMES, GameType
+from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, getMasterlistPath
 from .tools.xEdit import get_xEditPathFromRegistry, scan_xEditDirectoryForExecutable, xEditGame
 
 
 class LOOTWarningChecker(mobase.IPluginDiagnose):
-    __TOGGLE_PLUGIN_NAME = "LOOT Warning Toggle"
+    __TOGGLE_PLUGIN_NAME: Final[str] = "LOOT Warning Toggle"
     __warnings: Dict[int, LOOTWarning] = {}
     __lootLoader: Optional[LOOTMasterlistLoader] = None
 
@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 4, mobase.ReleaseType.BETA)
+        return mobase.VersionInfo(1, 2, 5, mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -76,6 +76,11 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 "include-info-messages",
                 self.__tr("Include non-warning info messages from LOOT"),
                 True,
+            ),
+            mobase.PluginSetting(
+                "userlists-directory",
+                self.__tr("Folder containing the game-specific folders for LOOT's userlists"),
+                "",
             ),
             mobase.PluginSetting(
                 "xedit-directory",
@@ -107,29 +112,31 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         warning = self.__warnings[key]
         if isinstance(warning, DirtyPluginWarning):
             self.__quickAutoCleanPlugin(warning.pluginName)
-        # TODO: Implement more guided fixes
 
     def __tr(self, txt: str) -> str:
         return QApplication.translate("LOOTWarningChecker", txt)
 
     def __onUserInterfaceInitialized(self, mainWindow: QMainWindow) -> None:
         self.__parentWidget = mainWindow
-        # Update LOOT masterlist if enabled
         game = SUPPORTED_GAMES.get(self.__organizer.managedGame().gameName(), None)
         if game is not None:
             if self.__organizer.pluginSetting(self.name(), "auto-update-masterlist"):
-                repoName, gameFolder = game.lootGame
-                qInfo(self.__tr("Updating LOOT masterlist..."))
-                try:
-                    downloadMasterlist(repoName, getMasterlistDir(self.__organizer.getPluginDataPath(), gameFolder))
-                except OSError as exc:
-                    qCritical(str(exc))
-                else:
-                    qInfo(self.__tr("Successfully updated LOOT masterlist."))
+                self.__updateMasterlist(game)
             try:
                 self.__lootLoader = LOOTMasterlistLoader(self.__organizer, game.lootGame)
             except OSError as exc:
                 qCritical(str(exc))
+
+    def __updateMasterlist(self, game: GameType) -> None:
+        repoName, gameFolder = game.lootGame
+        qInfo(self.__tr("Updating LOOT masterlist..."))
+        pluginDataPath = os.path.join(self.__organizer.getPluginDataPath(), self.name())
+        try:
+            downloadMasterlist(repoName, getMasterlistPath(pluginDataPath, gameFolder))
+        except OSError as exc:
+            qCritical(str(exc))
+        else:
+            qInfo(self.__tr("Successfully updated LOOT masterlist."))
 
     def __onPluginSettingChanged(
         self, pluginName: str, settingName: str, oldValue: mobase.MoVariant, newValue: mobase.MoVariant
