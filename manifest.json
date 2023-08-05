@@ -199,6 +199,24 @@
       "DataPath": [
         "data/LOOT Warning Checker"
       ]
+    },
+    {
+      "Version": "1.2.5-rc2",
+      "Released": "2023-08-05",
+      "MinSupport": "2.4.4",
+      "MaxSupport": "2.4.4",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.2.5-rc2/LOOT-Warning-Checker-v1.2.5-rc2.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Enable updating the masterlist by default",
+        "Fix masterlist being loaded from the wrong location",
+        "Improve version comparisons in LOOT condition strings"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
+      ]
     }
   ]
 }

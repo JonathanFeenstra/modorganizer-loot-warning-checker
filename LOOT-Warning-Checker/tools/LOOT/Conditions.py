@@ -25,7 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 GPL License and Copyright Notice ============================================
  Parts of this file are based on code from Wrye Bash:
- https://github.com/wrye-bash/wrye-bash/blob/dev/Mopy/bash/bosh/loot_conditions.py
+ https://github.com/wrye-bash/wrye-bash/blob/dev/Mopy/bash/loot_conditions.py
 
  Wrye Bash is free software: you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ GPL License and Copyright Notice ============================================
  You should have received a copy of the GNU General Public License
  along with Wrye Bash.  If not, see <https://www.gnu.org/licenses/>.
 
- Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2022 Wrye Bash Team
+ Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2023 Wrye Bash Team
  https://github.com/wrye-bash
 
 =============================================================================
@@ -547,16 +547,16 @@ class LOOTConditionEvaluator:
         if os.path.isfile(absolutePath):
             if extension in (".exe", ".dll"):
                 # "If filepath does not exist or does not have a version number, its version is assumed to be 0"
-                actualVersion = mobase.getFileVersion(absolutePath) or "0.0.0.0"
+                actualVersion = mobase.VersionInfo(mobase.getFileVersion(absolutePath) or "0.0.0.0")
             elif extension in (".esp", ".esm", ".esl"):
                 if origins := self._organizer.getFileOrigins(relativeFilePath):
                     mod = self._organizer.modList().getMod(origins[0])
-                    actualVersion = mod.version().canonicalString()
+                    actualVersion = mod.version()
                 else:
                     return False
             else:
                 raise InvalidConditionError(f"{relativeFilePath} is not a valid binary or plugin file.")
-            return comparisonOperator(actualVersion, givenVersion)
+            return comparisonOperator(actualVersion, mobase.VersionInfo(givenVersion))
         return False
 
     def _productVersion(

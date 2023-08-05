@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 5, mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 2, 5, 2, mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -70,7 +70,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             mobase.PluginSetting(
                 "auto-update-masterlist",
                 self.__tr("Automatically update the LOOT masterlist on launch"),
-                False,
+                True,
             ),
             mobase.PluginSetting(
                 "include-info-messages",

@@ -40,7 +40,7 @@ from .Warnings import (
     MissingRequirementWarning,
 )
 
-CHECKER_PLUGIN_NAME: Final[str] = "LOOT Warning Checker"
+_CHECKER_PLUGIN_NAME: Final[str] = "LOOT Warning Checker"
 
 
 class LOOTGame(NamedTuple):
@@ -311,7 +311,9 @@ class LOOTMasterlistLoader:
         Returns:
             _LOOTMasterlist: Parsed masterlist data
         """
-        masterlistPath = getMasterlistPath(self._organizer.getPluginDataPath(), self._game.folder)
+        masterlistPath = getMasterlistPath(
+            os.path.join(self._organizer.getPluginDataPath(), _CHECKER_PLUGIN_NAME), self._game.folder
+        )
         if not os.path.isfile(masterlistPath):
             qDebug(f"Masterlist not found at {masterlistPath}, downloading...")
             try:
@@ -341,10 +343,10 @@ class LOOTMasterlistLoader:
         return masterlist
 
     def _getUserlistPath(self) -> str:
-        userlistsDir = self._organizer.pluginSetting(CHECKER_PLUGIN_NAME, "userlists-directory")
+        userlistsDir = self._organizer.pluginSetting(_CHECKER_PLUGIN_NAME, "userlists-directory")
         if userlistsDir == "":
-            userlistsDir = os.path.join(self._organizer.getPluginDataPath(), CHECKER_PLUGIN_NAME)
-            self._organizer.setPluginSetting(CHECKER_PLUGIN_NAME, "userlists-directory", userlistsDir)
+            userlistsDir = os.path.join(self._organizer.getPluginDataPath(), _CHECKER_PLUGIN_NAME)
+            self._organizer.setPluginSetting(_CHECKER_PLUGIN_NAME, "userlists-directory", userlistsDir)
         return os.path.join(userlistsDir, self._game.folder, "userlist.yaml")
 
     def getWarnings(self, includeInfo: bool = False) -> Generator[LOOTWarning, None, None]:
