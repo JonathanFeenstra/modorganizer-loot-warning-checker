@@ -36,6 +36,7 @@ SUPPORTED_GAMES = {
     "Skyrim": GameType(xEditGame("xTES", "TES5"), LOOTGame("skyrim", "Skyrim")),
     "Skyrim Special Edition": GameType(xEditGame("xTES", "SSE"), LOOTGame("skyrimse", "Skyrim Special Edition")),
     "Skyrim VR": GameType(xEditGame("xTES", "TES5VR"), LOOTGame("skyrimvr", "Skyrim VR")),
+    "Starfield": GameType(xEditGame("xSF", "SF1"), LOOTGame("starfield", "Starfield")),
     "Enderal": GameType(xEditGame("xTES", "Enderal"), LOOTGame("skyrim", "Enderal")),
     "Enderal Special Edition": GameType(
         xEditGame("xTES", "EnderalSE"),

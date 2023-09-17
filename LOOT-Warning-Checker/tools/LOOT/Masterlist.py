@@ -134,7 +134,7 @@ class _LOOTMasterlist:
 
         Currently only merges data used by the MO2 plugin.
 
-        https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-plugin-merge
+        https://loot-api.readthedocs.io/en/stable/metadata/data_structures/plugin.html#merging-behaviour
 
         Args:
             other (_LOOTMasterlist): Masterlist to merge into this one
@@ -155,7 +155,7 @@ class _LOOTMasterlist:
 def _mergeEntry(entry1: Dict[str, Any], entry2: Dict[str, Any]) -> None:
     """Merge the given masterlist entries.
 
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
+    https://loot-api.readthedocs.io/en/stable/metadata/data_structures/file.html
 
     Args:
         entry1 (Dict[str, Any]): First masterlist entry
@@ -174,7 +174,7 @@ def _mergeEntry(entry1: Dict[str, Any], entry2: Dict[str, Any]) -> None:
 def _mergeFileSets(masterFileSet: List[Union[str, Dict]], userFileSet: List[Union[str, Dict]]) -> List[Union[str, Dict]]:
     """Merge the masterlist and userlist file sets.
 
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
+    https://loot-api.readthedocs.io/en/stable/metadata/data_structures/file.html
 
     Args:
         masterFileSet ([List[Union[str, Dict]]]): Parsed masterlist file set
@@ -211,7 +211,7 @@ def _mergeMessageLists(
 ) -> List[Dict[str, Any]]:
     """Merge the masterlist and userlist message lists.
 
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-message
+    https://loot-api.readthedocs.io/en/stable/metadata/data_structures/message.html
 
     Args:
         masterMessageList (List[Dict[str, Any]]): Parsed masterlist message list
@@ -231,7 +231,7 @@ def _mergeDirtyInfoSets(
 ) -> List[Dict[str, Any]]:
     """Merge the masterlist and userlist dirty info sets.
 
-    https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-dirty
+    https://loot-api.readthedocs.io/en/stable/metadata/data_structures/cleaning.html
 
     Args:
         masterDirtyInfoSet (List[Dict[str, Any]]): Parsed masterlist dirty info set
@@ -285,7 +285,7 @@ def downloadMasterlist(masterlistRepo: str, filePath: Union[str, os.PathLike]) -
         OSError: If the file cannot be written to
     """
     # Version branch may change if the masterlist syntax changes
-    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.18/masterlist.yaml"
+    masterlistURL = f"https://raw.githubusercontent.com/loot/{masterlistRepo}/v0.21/masterlist.yaml"
     with urlopen(masterlistURL) as response:
         with open(filePath, "wb") as file:
             file.write(response.read())
@@ -346,7 +346,7 @@ class LOOTMasterlistLoader:
         userlistsDir = self._organizer.pluginSetting(_CHECKER_PLUGIN_NAME, "userlists-directory")
         if userlistsDir == "":
             userlistsDir = os.path.join(self._organizer.getPluginDataPath(), _CHECKER_PLUGIN_NAME)
-            self._organizer.setPluginSetting(_CHECKER_PLUGIN_NAME, "userlists-directory", userlistsDir)
+            self._organizer.setPluginSetting(_CHECKER_PLUGIN_NAME, "userlists-directory", os.path.normpath(userlistsDir))
         return os.path.join(userlistsDir, self._game.folder, "userlist.yaml")
 
     def getWarnings(self, includeInfo: bool = False) -> Generator[LOOTWarning, None, None]:
@@ -421,7 +421,7 @@ class LOOTMasterlistLoader:
                     continue
                 yield MissingRequirementWarning(plugin.name, file)
             else:
-                # file datastructure: https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
+                # file datastructure: https://loot-api.readthedocs.io/en/stable/metadata/data_structures/file.html
                 fileName = file["name"]
                 if self._conditionEvaluator._file(fileName):
                     continue
@@ -451,7 +451,7 @@ class LOOTMasterlistLoader:
                 if self._conditionEvaluator._file(file):
                     yield IncompatibilityWarning(plugin.name, file)
             else:
-                # file datastructure: https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-file
+                # file datastructure: https://loot-api.readthedocs.io/en/stable/metadata/data_structures/file.html
                 fileName = file["name"]
                 if self._conditionEvaluator._file(fileName):
                     if (condition := file.get("condition")) is not None:
@@ -469,7 +469,6 @@ class LOOTMasterlistLoader:
         """Get LOOT warnings for messages.
 
         https://loot-api.readthedocs.io/en/latest/metadata/data_structures/message.html
-        https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-message
 
         Args:
             plugin (GamebryoPlugin): The plugin to check for messages
@@ -496,7 +495,7 @@ class LOOTMasterlistLoader:
     ) -> Generator[DirtyPluginWarning, None, None]:
         """Get LOOT warnings for dirty plugins.
 
-        https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#structs-dirty
+        https://loot-api.readthedocs.io/en/stable/metadata/data_structures/cleaning.html
 
         Args:
             plugin (GamebryoPlugin): Plugin to check

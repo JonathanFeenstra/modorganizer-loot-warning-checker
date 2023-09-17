@@ -6,7 +6,6 @@ Parsing and evaluation of LOOT masterlist conditions.
 
 References:
 - https://loot-api.readthedocs.io/en/latest/metadata/conditions.html
-- https://loot.github.io/docs/0.9.2/LOOT%20Metadata%20Syntax.html#cond
 
 Copyright (C) 2021-2023 Jonathan Feenstra
 

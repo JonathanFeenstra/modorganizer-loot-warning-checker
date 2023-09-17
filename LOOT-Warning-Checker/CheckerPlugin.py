@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 5, 2, mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 2, 5, 3, release_type=mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -210,7 +210,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 path = self.__start_xEditDirectorySelectionDialog(game)
 
         if path is not None and os.path.isfile(path):
-            self.__organizer.setPluginSetting(self.name(), "xedit-directory", os.path.dirname(path))
+            self.__organizer.setPluginSetting(self.name(), "xedit-directory", os.path.normpath(os.path.dirname(path)))
         return path
 
     def __start_xEditDirectorySelectionDialog(self, game: xEditGame) -> Optional[str]:

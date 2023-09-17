@@ -97,8 +97,7 @@ class MessageWarning(LOOTWarning):
         # content[0] = English localization
         content = content[0]["text"] if isinstance(content, list) else content
         if subs := msgData.get("subs", []):
-            for idx, sub in enumerate(subs):
-                content = content.replace(f"%{idx + 1}%", sub)
+            content = content.format(*subs)
         self.fullDescription = f"{pluginName}: {_convertMarkdownToHTML(content)}"
         self.shortDescription = f"{pluginName}: {_stripMarkdown(content)}"
 
