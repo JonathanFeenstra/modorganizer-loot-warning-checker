@@ -52,7 +52,7 @@ from typing import Any, Callable, Generator, List, Optional, Tuple, Union
 from zlib import crc32
 
 import mobase
-from PyQt5.QtCore import qCritical, qDebug
+from PyQt6.QtCore import qCritical, qDebug
 
 from .Plugins import GamebryoPlugin
 

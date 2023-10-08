@@ -233,6 +233,23 @@
       "DataPath": [
         "data/LOOT Warning Checker"
       ]
+    },
+    {
+      "Version": "1.3.0-rc1",
+      "Released": "2023-10-08",
+      "MinSupport": "2.5.0",
+      "MaxSupport": "2.5.0",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.3.0-rc1/LOOT-Warning-Checker-v1.3.0-rc1.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Add support for Mod Organizer 2.5.0",
+        "Add support for Starfield"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
+      ]
     }
   ]
 }
