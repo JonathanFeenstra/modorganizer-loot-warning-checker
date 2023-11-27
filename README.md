@@ -28,6 +28,7 @@
     - Fallout New Vegas
     - Fallout 4
     - Fallout 4 VR
+    - Starfield
 
 ## Installation
 Add the [LOOT-Warning-Checker folder](/LOOT-Warning-Checker) to your Mod Organizer plugins folder or install it using [Kezyma's Plugin Finder](https://www.nexusmods.com/skyrimspecialedition/mods/59869). Remove the contents of the existing folder before updating to a newer version.

@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: py-esplugin
+Version: 0.3.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+License-File: LICENSE
+License-File: LICENSE
+Summary: FFI providing PyO3 bindings for parts of esplugin for Python
+Author: Jonathan Feenstra
+License: GPL-3.0-or-later
+Description-Content-Type: text/markdown; charset=UTF-8; variant=GFM
+Project-URL: repository, https://github.com/JonathanFeenstra/py-esplugin
+
+# py-esplugin
+FFI providing [PyO3](https://pyo3.rs) bindings for parts of [esplugin](https://github.com/Ortham/esplugin) for Python.
+
+This package is developed to provide an esplugin FFI for the [LOOT Warning Checker MO2 plugin](https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker). Build instructions can be found in the [PyO3 user guide](https://pyo3.rs/v0.19.2/building_and_distribution.html).

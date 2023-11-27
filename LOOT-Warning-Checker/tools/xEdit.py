@@ -24,7 +24,7 @@ import re
 import winreg
 from typing import NamedTuple
 
-from PyQt5.QtCore import qDebug
+from PyQt6.QtCore import qDebug
 
 
 class xEditGame(NamedTuple):

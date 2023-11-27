@@ -26,7 +26,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 from mobase import IOrganizer
-from PyQt5.QtCore import qCritical, qDebug, qWarning
+from PyQt6.QtCore import qCritical, qDebug, qWarning
 from yaml import CLoader, YAMLError, load
 
 from .Conditions import InvalidConditionError, LOOTConditionEvaluator, isRegex

@@ -23,8 +23,8 @@ import os
 from typing import Dict, Final, List, Optional
 
 import mobase
-from PyQt5.QtCore import qCritical, qDebug, qInfo
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
+from PyQt6.QtCore import qCritical, qDebug, qInfo
+from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 
 from .Games import SUPPORTED_GAMES, GameType
 from .tools.LOOT import DirtyPluginWarning, LOOTMasterlistLoader, LOOTWarning, downloadMasterlist, getMasterlistPath
@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 2, 5, 3, release_type=mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 3, 0, 1, release_type=mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]

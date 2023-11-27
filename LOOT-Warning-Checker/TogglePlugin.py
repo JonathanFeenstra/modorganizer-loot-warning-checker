@@ -22,8 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from typing import List, Optional
 
 import mobase
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QWidget
 
 from .Games import SUPPORTED_GAMES
 
