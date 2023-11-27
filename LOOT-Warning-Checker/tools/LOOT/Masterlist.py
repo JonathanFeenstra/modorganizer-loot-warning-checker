@@ -124,10 +124,14 @@ class _LOOTMasterlist:
         return self._nameEntries.get(pluginName, None) or self._getRegexEntry(pluginName)
 
     def _getRegexEntry(self, pluginName: str) -> Optional[Dict[str, Any]]:
-        for entry in self._regexEntries.values():
-            if entry["regex"].match(pluginName):
-                return entry
-        return None
+        return next(
+            (
+                entry
+                for entry in self._regexEntries.values()
+                if entry["regex"].match(pluginName)
+            ),
+            None,
+        )
 
     def merge(self, other: "_LOOTMasterlist") -> None:
         """Merge the given masterlist into this one.

@@ -435,7 +435,7 @@ class LOOTConditionEvaluator:
         """
         if isRegex(pluginNameOrPattern):
             try:
-                matchesRegex = re.compile(pluginNameOrPattern + "$").match
+                matchesRegex = re.compile(f"{pluginNameOrPattern}$").match
             except re.error as exc:
                 raise InvalidConditionError(f"Invalid pattern: {pluginNameOrPattern}") from exc
             return any(
@@ -476,7 +476,7 @@ class LOOTConditionEvaluator:
             InvalidConditionError: If the pattern is invalid
         """
         try:
-            matchesRegex = re.compile(pattern + "$").match
+            matchesRegex = re.compile(f"{pattern}$").match
         except re.error as exc:
             raise InvalidConditionError(f"Invalid pattern: {pattern}") from exc
         oneFound = False
