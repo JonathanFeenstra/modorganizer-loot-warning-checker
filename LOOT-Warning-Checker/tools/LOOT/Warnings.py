@@ -178,8 +178,7 @@ class FormID_OutOfRangeWarning(LOOTWarning):
             "Using this plugin will cause irreversible damage to your game saves."
         )
         self.fullDescription = (
-            f"{self.shortDescription}<br><br>The valid FormID range for ESL plugins is <b>FExxx800-FExxxFFF</b> "
-            "in Skyrim Special Edition and <b>FExxx001-FExxxFFF</b> in Fallout 4. If this plugin was uploaded in this "
+            f"{self.shortDescription}<br><br>If this plugin was uploaded in this "
             "state, the error should be reported to the author."
         )
 
