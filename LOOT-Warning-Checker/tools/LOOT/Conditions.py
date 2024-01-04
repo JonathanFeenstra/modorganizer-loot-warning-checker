@@ -7,7 +7,7 @@ Parsing and evaluation of LOOT masterlist conditions.
 References:
 - https://loot-api.readthedocs.io/en/latest/metadata/conditions.html
 
-Copyright (C) 2021-2023 Jonathan Feenstra
+Copyright (C) 2021-2024 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ GPL License and Copyright Notice ============================================
  You should have received a copy of the GNU General Public License
  along with Wrye Bash.  If not, see <https://www.gnu.org/licenses/>.
 
- Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2023 Wrye Bash Team
+ Wrye Bash copyright (C) 2005-2009 Wrye, 2010-2024 Wrye Bash Team
  https://github.com/wrye-bash
 
 =============================================================================

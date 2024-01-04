@@ -4,7 +4,7 @@ Checker Plugin
 
 The LOOT Warning Checker plugin.
 
-Copyright (C) 2021-2023 Jonathan Feenstra
+Copyright (C) 2021-2024 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 3, 0, 2, release_type=mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 3, 0, 3, release_type=mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -231,7 +231,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 '<a href="https://github.com/TES5Edit/TES5Edit/releases/latest">here</a>.'
             ),
         )
-        if result != QMessageBox.Yes:
+        if result != QMessageBox.StandardButton.Yes:
             return None
 
         path = None
@@ -243,7 +243,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                     self.__parentWidget,
                     self.__tr("Invalid path"),
                     self.__tr("The selected path is invalid. Would you like to try another location?"),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                    QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
                 )
                 if result == QMessageBox.Yes:
                     continue
@@ -270,7 +270,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         xEditDir = QFileDialog.getExistingDirectory(
             self.__parentWidget,
             self.__tr("Select the folder where the xEdit executable is located"),
-            options=QFileDialog.ShowDirsOnly,
+            options=QFileDialog.Option.ShowDirsOnly,
         )
         qDebug(f"Selected xEdit directory: {xEditDir}")
         if xEditDir != "":

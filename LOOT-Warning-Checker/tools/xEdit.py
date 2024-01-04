@@ -4,7 +4,7 @@ xEdit
 
 Detection of the xEdit executable for Quick Auto Clean.
 
-Copyright (C) 2021-2023 Jonathan Feenstra
+Copyright (C) 2021-2024 Jonathan Feenstra
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
