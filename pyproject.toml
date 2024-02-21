@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 125
-target-version = ["py38"]
+target-version = ["py311"]
 exclude = "/LOOT-Warning-Checker/lib/"
 
 [tool.isort]
