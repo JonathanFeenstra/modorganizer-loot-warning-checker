@@ -60,7 +60,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 3, 0, 3, release_type=mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 3, 0, 4, release_type=mobase.ReleaseType.CANDIDATE)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]

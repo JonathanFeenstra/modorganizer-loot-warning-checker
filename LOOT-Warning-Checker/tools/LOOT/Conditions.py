@@ -584,6 +584,6 @@ class LOOTConditionEvaluator:
         extension = os.path.splitext(relativeFilePath)[1]
         if os.path.isfile(absolutePath) and extension in (".exe", ".dll"):
             # "If filepath does not exist or does not have a version number, its version is assumed to be 0"
-            version = mobase.getProductVersion(absolutePath) or "0.0.0.0"
-            return comparisonOperator(version, givenVersion)
+            version = mobase.VersionInfo(mobase.getProductVersion(absolutePath) or "0.0.0.0")
+            return comparisonOperator(version, mobase.VersionInfo(givenVersion))
         raise InvalidConditionError(f"{relativeFilePath} is not a valid binary file.")
