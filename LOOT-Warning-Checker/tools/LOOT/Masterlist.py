@@ -22,7 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import re
-from typing import Any, Dict, Final, Generator, List, NamedTuple, Optional, Union
+from typing import Any, Dict, Final, Generator, List, NamedTuple, Union
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -34,8 +34,8 @@ from .Conditions import InvalidConditionError, LOOTConditionEvaluator, isRegex
 from .Plugins import GamebryoPlugin, PluginParseError
 from .Warnings import (
     DirtyPluginWarning,
-    FormID_OutOfRangeWarning,
     IncompatibilityWarning,
+    InvalidPluginWarning,
     LOOTWarning,
     MessageWarning,
     MissingRequirementWarning,
@@ -112,7 +112,7 @@ class _LOOTMasterlist:
         else:
             self._regexEntries[name] = entry
 
-    def getEntry(self, pluginName: str) -> Optional[Dict[str, Any]]:
+    def getEntry(self, pluginName: str) -> Dict[str, Any] | None:
         """Get the masterlist entry for the given plugin name.
 
         Args:
@@ -124,7 +124,7 @@ class _LOOTMasterlist:
         pluginName = pluginName.lower()
         return self._nameEntries.get(pluginName, None) or self._getRegexEntry(pluginName)
 
-    def _getRegexEntry(self, pluginName: str) -> Optional[Dict[str, Any]]:
+    def _getRegexEntry(self, pluginName: str) -> Dict[str, Any] | None:
         for entry in self._regexEntries.values():
             if entry["regex"].match(pluginName):
                 return entry
@@ -362,13 +362,17 @@ class LOOTMasterlistLoader:
         for pluginPath in self._organizer.findFiles("", "*.es[lmp]"):
             plugin = GamebryoPlugin(self._game.masterlistRepo, pluginPath)
             try:
-                isInvalidLightPlugin = plugin.isLightPlugin() and not plugin.isValidAsLightPlugin()
+                isInvalidPlugin = plugin.isLightPlugin() and not plugin.isValidAsLightPlugin()
+                if self._game.masterlistRepo == "starfield":
+                    isInvalidPlugin &= (plugin.isMediumPlugin() and not plugin.isValidAsMediumPlugin()) or (
+                        plugin.isUpdatePlugin() and not plugin.isValidAsUpdatePlugin()
+                    )
             except PluginParseError as err:
                 qWarning(f"Failed to parse plugin {pluginPath}: {err}.")
             else:
-                if isInvalidLightPlugin:
-                    qDebug(f"Invalid light plugin detected: {plugin.name}")
-                    yield FormID_OutOfRangeWarning(plugin.name)
+                if isInvalidPlugin:
+                    qDebug(f"Invalid plugin detected: {plugin.name}")
+                    yield InvalidPluginWarning(plugin.name)
             if (entry := self._masterlist.getEntry(plugin.name)) is not None:
                 try:
                     yield from self._getPluginWarnings(plugin, entry, includeInfo)

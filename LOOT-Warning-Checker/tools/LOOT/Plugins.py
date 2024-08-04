@@ -77,6 +77,8 @@ class GamebryoPlugin:
                 self._esplugin = Plugin("SkyrimSE", self.path)
             elif self.masterlistRepo in ("fallout4", "fallout4vr"):
                 self._esplugin = Plugin("Fallout4", self.path)
+            elif self.masterlistRepo == "starfield":
+                self._esplugin = Plugin("Starfield", self.path)
             else:
                 self._esplugin = False
                 return
@@ -96,7 +98,6 @@ class GamebryoPlugin:
         """
         if self.name.endswith(".esl"):
             return True
-        # Lazy load the plugin data
         if self._esplugin is None:
             self._loadData()
         if not self._esplugin:
@@ -106,7 +107,7 @@ class GamebryoPlugin:
     def isValidAsLightPlugin(self) -> bool:
         """Check if the plugin is valid as a light plugin (ESL).
 
-        A plugin is valid as a light plugin if the game supports light plugins and all FormIDs are in the valid ESL range for
+        A plugin is valid as a light plugin if the game supports light plugins and all FormIDs are in the valid range for
         the game. This does not check if the plugin is actually a light plugin.
 
         Returns:
@@ -120,3 +121,73 @@ class GamebryoPlugin:
         if not self._esplugin:
             return False
         return self._esplugin.is_valid_as_light_plugin()
+
+    def isMediumPlugin(self) -> bool:
+        """Check if the plugin is a medium plugin (for Starfield).
+
+        Returns:
+            bool: True if the plugin is a medium plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
+        """
+        if self.name.endswith(".esl"):
+            return False
+        if self._esplugin is None:
+            self._loadData()
+        if not self._esplugin:
+            return False
+        return not self._esplugin.is_medium_plugin()
+
+    def isValidAsMediumPlugin(self) -> bool:
+        """Check if the plugin is valid as a medium plugin (for Starfield).
+
+        A plugin is valid as a medium plugin if the game supports medium plugins and all FormIDs are in the valid range for
+        the game. This does not check if the plugin is actually a medium plugin.
+
+        Returns:
+            bool: True if the plugin is valid as a medium plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
+        """
+        if self._esplugin is None:
+            self._loadData()
+        if not self._esplugin:
+            return False
+        return self._esplugin.is_valid_as_medium_plugin()
+
+    def isUpdatePlugin(self) -> bool:
+        """Check if the plugin is an update plugin (for Starfield).
+
+        Returns:
+            bool: True if the plugin is an update plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
+        """
+        if self.name.endswith(".esl"):
+            return False
+        if self._esplugin is None:
+            self._loadData()
+        if not self._esplugin:
+            return False
+        return self._esplugin.is_update_plugin()
+
+    def isValidAsUpdatePlugin(self) -> bool:
+        """Check if the plugin is valid as an update plugin (for Starfield).
+
+        A plugin is valid as an update plugin if the game supports update plugins and all records override an existing record.
+        This does not check if the plugin is actually an update plugin.
+
+        Returns:
+            bool: True if the plugin is valid as an update plugin
+
+        Raises:
+            PluginParseError: Raised when the plugin fails to parse.
+        """
+        if self._esplugin is None:
+            self._loadData()
+        if not self._esplugin:
+            return False
+        return self._esplugin.is_valid_as_update_plugin()

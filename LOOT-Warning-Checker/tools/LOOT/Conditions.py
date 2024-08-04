@@ -49,7 +49,7 @@ import operator
 import os
 import re
 from ast import literal_eval
-from typing import Any, Callable, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Generator, List, Tuple, Union
 from zlib import crc32
 
 import mobase
@@ -185,7 +185,7 @@ class LOOTConditionEvaluator:
             ),
         )
 
-    def evalCondition(self, condition: str, plugin: Optional[GamebryoPlugin] = None) -> bool:
+    def evalCondition(self, condition: str, plugin: GamebryoPlugin | None = None) -> bool:
         """Evaluate a LOOT masterlist condition.
 
         Strategy:
@@ -221,7 +221,7 @@ class LOOTConditionEvaluator:
         return result
 
     def _evalFunction(
-        self, mo2Function: Callable, parsedArgs: Generator[Any, None, None], plugin: Optional[GamebryoPlugin] = None
+        self, mo2Function: Callable, parsedArgs: Generator[Any, None, None], plugin: GamebryoPlugin | None = None
     ) -> bool:
         """Evaluate a function.
 

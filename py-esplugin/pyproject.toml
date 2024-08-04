@@ -1,0 +1,25 @@
+[project]
+name = "py-esplugin"
+version = "0.4.0"
+description = "FFI providing PyO3 bindings for parts of esplugin for Python"
+readme = "README.md"
+authors = [{name = "Jonathan Feenstra"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[project.urls]
+repository = "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker"
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+bindings = "pyo3"

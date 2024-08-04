@@ -14,6 +14,9 @@
 - Configurable settings to:
     - Enable/disable automatically updating LOOT's masterlist
     - Enable/disable displaying non-warning messages
+    - Set the paths of the LOOT masterlist and the xEdit executable
+    - Set the path of the game's Data-directory to use in xEdit (the [`-D:<path>` command line argument](https://tes5edit.github.io/docs/2-overview.html#CommandLineSwitches))
+    - Ignore warnings that match any regular expressions listed in a specified file
 - Tool menu option to quickly toggle whether to check for LOOT warnings
 - Support for:
     - Morrowind

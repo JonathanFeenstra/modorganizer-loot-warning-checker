@@ -1,7 +1,7 @@
 [tool.black]
 line-length = 125
-target-version = ["py311"]
-exclude = "/LOOT-Warning-Checker/lib/"
+target-version = ["py312"]
+extend-exclude = "/LOOT-Warning-Checker/lib/"
 
 [tool.isort]
 profile = "black"

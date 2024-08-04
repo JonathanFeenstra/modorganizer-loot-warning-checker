@@ -1,4 +1,7 @@
 .mypy_cache/
+.venv/
 .vscode/
 __pycache__/
 env/
+target/
+Cargo.lock

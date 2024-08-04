@@ -262,6 +262,9 @@
       ],
       "ReleaseNotes": [
         "Update the valid form ID range for light plugins in Skyrim SE and Fallout 4 via esplugin"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
       ]
     },
     {
@@ -275,6 +278,9 @@
       ],
       "ReleaseNotes": [
         "Fix xEdit path selection dialog using PyQt5 APIs that are no longer available in PyQt6"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
       ]
     },
     {
@@ -288,6 +294,26 @@
       ],
       "ReleaseNotes": [
         "Improve product version comparisons in LOOT condition strings"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
+      ]
+    },
+    {
+      "Version": "1.4.0",
+      "Released": "2024-08-04",
+      "MinSupport": "2.5.2",
+      "MaxSupport": "2.5.2",
+      "DownloadUrl": "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker/releases/download/v1.4.0/LOOT-Warning-Checker-v1.4.0.zip",
+      "PluginPath": [
+        "LOOT-Warning-Checker"
+      ],
+      "ReleaseNotes": [
+        "Add support for Mod Organizer 2.5.2 (Python 3.12)",
+        "Add setting to ignore warnings that match regular expressions listed in a specified file"
+      ],
+      "DataPath": [
+        "data/LOOT Warning Checker"
       ]
     }
   ]

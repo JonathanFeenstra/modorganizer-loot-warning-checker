@@ -21,7 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-from typing import Dict, Final, List, Optional
+import re
+from typing import Dict, Final, List
 
 import mobase
 from PyQt6.QtCore import qCritical, qDebug, qInfo
@@ -35,11 +36,12 @@ from .tools.xEdit import get_xEditPathFromRegistry, scan_xEditDirectoryForExecut
 class LOOTWarningChecker(mobase.IPluginDiagnose):
     __TOGGLE_PLUGIN_NAME: Final[str] = "LOOT Warning Toggle"
     __warnings: Dict[int, LOOTWarning] = {}
-    __lootLoader: Optional[LOOTMasterlistLoader] = None
+    __ignorePatterns: List[re.Pattern] = []
+    __lootLoader: LOOTMasterlistLoader | None = None
 
     def __init__(self) -> None:
         super().__init__()
-        self.__parentWidget: Optional[QMainWindow] = None
+        self.__parentWidget: QMainWindow | None = None
 
     def init(self, organizer: mobase.IOrganizer) -> bool:
         self.__organizer = organizer
@@ -61,7 +63,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         return self.__tr("Checks for LOOT warnings.")
 
     def version(self) -> mobase.VersionInfo:
-        return mobase.VersionInfo(1, 3, 0, 4, release_type=mobase.ReleaseType.CANDIDATE)
+        return mobase.VersionInfo(1, 4, 0, 0, release_type=mobase.ReleaseType.FINAL)
 
     def requirements(self) -> List[mobase.IPluginRequirement]:
         return [mobase.PluginRequirementFactory.gameDependency(games=list(SUPPORTED_GAMES.keys()))]
@@ -91,6 +93,11 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             mobase.PluginSetting(
                 "xedit-data-path",
                 self.__tr("Data path argument (-D:) to pass to xEdit"),
+                "",
+            ),
+            mobase.PluginSetting(
+                "ignore-file-path",
+                self.__tr("File containing regex patterns for warnings to ignore"),
                 "",
             ),
         ]
@@ -127,6 +134,8 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 self.__lootLoader = LOOTMasterlistLoader(self.__organizer, game.lootGame)
             except OSError as exc:
                 qCritical(str(exc))
+            if ignoreFilePath := self.__organizer.pluginSetting(self.name(), "ignore-file-path"):
+                self.__loadIgnoreFile(ignoreFilePath)
 
     def __updateMasterlist(self, game: GameType) -> None:
         repoName, gameFolder = game.lootGame
@@ -139,6 +148,24 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
         else:
             qInfo(self.__tr("Successfully updated LOOT masterlist."))
 
+    def __loadIgnoreFile(self, ignoreFilePath: str) -> None:
+        try:
+            with open(ignoreFilePath, "r") as f:
+                for line in f:
+                    if line.startswith("#") or line.strip() == "":
+                        continue
+                    self.__addIgnorePattern(line.strip())
+        except FileNotFoundError:
+            qCritical(self.__tr("Ignore file not found."))
+        except OSError as exc:
+            qCritical(str(exc))
+
+    def __addIgnorePattern(self, pattern: str) -> None:
+        try:
+            self.__ignorePatterns.append(re.compile(pattern))
+        except re.error as exc:
+            qCritical(f"Invalid regex pattern in ignore file: {exc}")
+
     def __onPluginSettingChanged(
         self, pluginName: str, settingName: str, oldValue: mobase.MoVariant, newValue: mobase.MoVariant
     ) -> None:
@@ -148,12 +175,19 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 self._invalidate()
             else:
                 self.__organizer.refresh()
+        elif pluginName == self.name() and settingName == "ignore-file-path":
+            self.__ignorePatterns.clear()
+            self.__loadIgnoreFile(newValue)
 
     def __updateWarnings(self) -> None:
         if self.__shouldUpdateWarnings():
             self.__warnings = dict(
                 enumerate(
-                    self.__lootLoader.getWarnings(bool(self.__organizer.pluginSetting(self.name(), "include-info-messages")))
+                    warning
+                    for warning in self.__lootLoader.getWarnings(
+                        bool(self.__organizer.pluginSetting(self.name(), "include-info-messages"))
+                    )
+                    if not any(pattern.search(warning.fullDescription) is not None for pattern in self.__ignorePatterns)
                 )
             )
 
@@ -181,7 +215,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             self.__organizer.refresh()
         # if executable is None, xEdit was not found and user canceled prompt
 
-    def __resolve_xEditExecutablePath(self, game: xEditGame) -> Optional[str]:
+    def __resolve_xEditExecutablePath(self, game: xEditGame) -> str | None:
         """Resolve the xEdit executable path.
 
         Args:
@@ -214,7 +248,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
             self.__organizer.setPluginSetting(self.name(), "xedit-directory", os.path.normpath(os.path.dirname(path)))
         return path
 
-    def __start_xEditDirectorySelectionDialog(self, game: xEditGame) -> Optional[str]:
+    def __start_xEditDirectorySelectionDialog(self, game: xEditGame) -> str | None:
         """Start the xEdit directory selection dialog.
 
         Args:
@@ -254,7 +288,7 @@ class LOOTWarningChecker(mobase.IPluginDiagnose):
                 return None
         return path
 
-    def __promptUserFor_xEditLocation(self, game: xEditGame) -> Optional[str]:
+    def __promptUserFor_xEditLocation(self, game: xEditGame) -> str | None:
         """
         Prompt the user to select the xEdit directory and return the file path.
 

@@ -1,0 +1,21 @@
+[package]
+name = "py-esplugin"
+version = "0.4.0"
+edition = "2021"
+authors = ["Jonathan Feenstra"]
+description = "FFI providing PyO3 bindings for parts of esplugin for Python"
+readme = "README.md"
+repository = "https://github.com/JonathanFeenstra/modorganizer-loot-warning-checker"
+license = "GPL-3.0-or-later"
+categories = ["external-ffi-bindings"]
+
+[lib]
+name = "esplugin"
+crate-type = ["cdylib"]
+
+[dependencies]
+esplugin = "6.1.0"
+
+[dependencies.pyo3]
+version = "0.22.2"
+features = ["extension-module"]

@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import List, Optional
+from typing import List
 
 import mobase
 from PyQt6.QtGui import QIcon
@@ -32,7 +32,7 @@ from .Games import SUPPORTED_GAMES
 class LOOTWarningToggle(mobase.IPluginTool):
     def __init__(self) -> None:
         super().__init__()
-        self.__parentWidget: Optional[QWidget] = None
+        self.__parentWidget: QWidget | None = None
 
     def init(self, organizer: mobase.IOrganizer) -> bool:
         self.__organizer = organizer

@@ -165,8 +165,8 @@ class IncompatibilityWarning(LOOTWarning):
         self.fullDescription = _convertMarkdownToHTML(content)
 
 
-class FormID_OutOfRangeWarning(LOOTWarning):
-    """LOOT warning for light plugins with FormIDs that are out of range."""
+class InvalidPluginWarning(LOOTWarning):
+    """LOOT warning for invalid plugins (FormIDs out of range, not supported by the game, etc.)."""
 
     def __init__(self, pluginName: str) -> None:
         """
@@ -175,12 +175,13 @@ class FormID_OutOfRangeWarning(LOOTWarning):
         """
         self.pluginName = pluginName
         self.shortDescription = (
-            f"{pluginName} contains records that have FormIDs outside the valid range for an ESL plugin. "
-            "Using this plugin will cause irreversible damage to your game saves."
+            f"{pluginName} is detected as invalid. The plugin type may not be supported by the game, or the plugin "
+            "contains records that are invalid for this type of plugin (e.g., FormIDs outside of the valid range). "
+            "This may cause irreversible damage to your game saves."
         )
         self.fullDescription = (
-            f"{self.shortDescription}<br><br>If this plugin was uploaded in this "
-            "state, the error should be reported to the author."
+            f"{self.shortDescription}<br><br>If this plugin was uploaded in an invalid state, the error should be "
+            "reported to the author."
         )
 
 
